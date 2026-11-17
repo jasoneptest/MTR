@@ -5,285 +5,817 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <title>屯馬綫即時班次</title>
+    <title>港鐵全線跨線轉乘即時看板 | MTR Live & Transfer</title>
     <style>
         :root {
-            --tml-brown: #9a3b26;
             --bg-color: #121212;
             --card-bg: #1e1e1e;
+            --input-bg: #2c2c2e;
+            --border-color: #3a3a3c;
             --text-main: #ffffff;
             --text-sub: #aaaaaa;
             --accent: #ffcc00;
         }
-        * { box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", sans-serif; }
-        body { background-color: var(--bg-color); color: var(--text-main); margin: 0; padding: 15px; padding-bottom: 40px; }
-        
-        .header { background: var(--tml-brown); padding: 16px; border-radius: 14px; text-align: center; margin-bottom: 15px; box-shadow: 0 4px 12px rgba(0,0,0,0.4); }
-        .header h1 { margin: 0; font-size: 20px; letter-spacing: 1px; }
-        .header p { margin: 5px 0 0; font-size: 13px; opacity: 0.9; }
+        * { box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", Arial, sans-serif; }
+        body { background-color: var(--bg-color); color: var(--text-main); margin: 0; padding: 14px; padding-bottom: 40px; }
+        .container { max-width: 720px; margin: 0 auto; }
 
-        .selector-card { background: var(--card-bg); padding: 15px; border-radius: 14px; margin-bottom: 15px; }
-        .route-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
-        .select-group { flex: 1; }
-        .select-group label { display: block; font-size: 12px; color: var(--text-sub); margin-bottom: 4px; }
-        select { width: 100%; padding: 10px; font-size: 16px; font-weight: bold; background: #2c2c2e; color: white; border: 1px solid #3a3a3c; border-radius: 10px; appearance: none; }
+        /* 頂部標題與語言切換 */
+        .header { background: linear-gradient(135deg, #1f3a60, #0d213f); padding: 16px; border-radius: 14px; margin-bottom: 14px; box-shadow: 0 4px 12px rgba(0,0,0,0.4); position: relative; }
+        .header-top { display: flex; justify-content: space-between; align-items: center; gap: 10px; }
+        .header h1 { margin: 0; font-size: 18px; letter-spacing: 0.5px; }
+        .header p { margin: 6px 0 0; font-size: 12px; color: #cbd5e1; }
         
-        .swap-btn { background: #2c2c2e; color: var(--accent); border: 1px solid #3a3a3c; border-radius: 50%; width: 42px; height: 42px; font-size: 18px; display: flex; align-items: center; justify-content: center; margin-top: 18px; cursor: pointer; }
+        .lang-btn { background: rgba(255,255,255,0.18); color: #fff; border: 1px solid rgba(255,255,255,0.35); border-radius: 8px; padding: 6px 12px; font-size: 13px; font-weight: bold; cursor: pointer; white-space: nowrap; }
+        .lang-btn:active { background: rgba(255,255,255,0.3); }
+
+        /* 選站卡片 */
+        .selector-card { background: var(--card-bg); padding: 14px; border-radius: 14px; margin-bottom: 14px; border: 1px solid #2a2a2c; }
+        .station-block { margin-bottom: 10px; }
+        .station-label { font-size: 12px; color: var(--text-sub); margin-bottom: 5px; display: flex; align-items: center; gap: 6px; font-weight: 600; }
+        .dot-start { width: 8px; height: 8px; border-radius: 50%; background: #34c759; display: inline-block; }
+        .dot-end { width: 8px; height: 8px; border-radius: 50%; background: #ff3b30; display: inline-block; }
+        
+        .select-pair { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+        select { width: 100%; padding: 10px 12px; font-size: 15px; font-weight: bold; background: var(--input-bg); color: white; border: 1px solid var(--border-color); border-radius: 10px; outline: none; }
+        select:focus { border-color: var(--accent); }
+
+        .swap-row { display: flex; justify-content: center; margin: 8px 0 12px; }
+        .swap-btn { background: var(--input-bg); color: var(--accent); border: 1px solid var(--border-color); border-radius: 20px; padding: 7px 18px; font-size: 13px; font-weight: bold; cursor: pointer; display: flex; align-items: center; gap: 6px; }
         .swap-btn:active { background: #3a3a3c; }
 
-        .trip-summary { margin-top: 12px; padding-top: 12px; border-top: 1px solid #2c2c2e; display: flex; justify-content: space-around; font-size: 14px; color: var(--accent); font-weight: 600; }
+        /* 行程摘要 */
+        .trip-summary { padding-top: 12px; border-top: 1px solid #2c2c2e; display: flex; justify-content: space-around; font-size: 13px; color: var(--accent); font-weight: bold; text-align: center; }
 
-        .direction-card { background: var(--card-bg); border-radius: 14px; padding: 15px; margin-bottom: 15px; }
-        .dir-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #2c2c2e; padding-bottom: 10px; margin-bottom: 10px; }
-        .dir-title { font-size: 16px; font-weight: bold; }
-        .dir-badge { font-size: 12px; background: var(--tml-brown); padding: 3px 8px; border-radius: 6px; }
-
-        .first-last-bar { background: #262629; padding: 8px 10px; border-radius: 8px; font-size: 12px; color: #dddddd; margin-bottom: 10px; display: flex; justify-content: space-between; flex-wrap: wrap; gap: 6px; }
+        /* 路線分段卡片 */
+        .leg-card { background: var(--card-bg); border-radius: 14px; padding: 14px; margin-bottom: 12px; border-left: 5px solid #888; box-shadow: 0 2px 8px rgba(0,0,0,0.3); }
+        .leg-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #2c2c2e; padding-bottom: 10px; margin-bottom: 10px; gap: 8px; }
+        .leg-route { font-size: 16px; font-weight: bold; }
+        .leg-badge { font-size: 12px; padding: 4px 9px; border-radius: 6px; color: #fff; font-weight: bold; white-space: nowrap; }
 
         .train-item { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid #2a2a2c; }
         .train-item:last-child { border-bottom: none; padding-bottom: 0; }
         .train-left { display: flex; flex-direction: column; gap: 4px; }
-        .train-dest { font-size: 16px; font-weight: bold; }
+        .train-dest { font-size: 15px; font-weight: bold; display: flex; align-items: center; flex-wrap: wrap; gap: 6px; }
         .train-meta { font-size: 12px; color: var(--text-sub); }
-        .warning-tag { color: #ff9500; font-weight: bold; }
         
-        .train-right { text-align: right; }
-        .wait-time { font-size: 17px; font-weight: bold; color: #34c759; }
+        .tag-warn { background: rgba(255, 149, 0, 0.2); color: #ff9500; border: 1px solid #ff9500; font-size: 11px; padding: 1px 6px; border-radius: 4px; }
+        .tag-catch { background: rgba(52, 199, 89, 0.2); color: #34c759; border: 1px solid #34c759; font-size: 11px; padding: 1px 6px; border-radius: 4px; }
+
+        .train-right { text-align: right; min-width: 105px; }
+        .wait-time { font-size: 16px; font-weight: bold; color: #34c759; }
         .wait-soon { color: #ff3b30; animation: pulse 1.2s infinite; }
         .eta-dest { font-size: 12px; color: var(--accent); margin-top: 3px; }
 
-        .status-bar { text-align: center; font-size: 12px; color: var(--text-sub); margin-top: 10px; }
-        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
+        /* 轉乘提示橫幅 */
+        .transfer-banner { background: #262629; border: 1px dashed #555; border-radius: 10px; padding: 10px 14px; margin-bottom: 12px; display: flex; align-items: center; justify-content: space-between; font-size: 13px; color: #e5e5ea; }
+        .transfer-highlight { color: var(--accent); font-weight: bold; }
+
+        .footer-note { text-align: center; font-size: 12px; color: var(--text-sub); margin-top: 14px; }
+        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.45; } }
     </style>
 </head>
 <body>
-
+<div class="container">
     <div class="header">
-        <h1>🚇 屯馬綫即時班次看板</h1>
+        <div class="header-top">
+            <h1 id="appTitle">🚇 港鐵全線跨線轉乘即時看板</h1>
+            <button class="lang-btn" id="langToggleBtn">EN / 中文</button>
+        </div>
         <p id="lastUpdate">正在連線港鐵伺服器...</p>
     </div>
 
     <div class="selector-card">
-        <div class="route-row">
-            <div class="select-group">
-                <label>起點站</label>
-                <select id="startSelect"></select>
-            </div>
-            <button class="swap-btn" id="swapBtn" title="起終點互換">⇄</button>
-            <div class="select-group">
-                <label>終點站</label>
-                <select id="endSelect"></select>
+        <div class="station-block">
+            <div class="station-label"><span class="dot-start"></span> <span id="lblStart">起點站（選擇路線及車站）</span></div>
+            <div class="select-pair">
+                <select id="startLine"></select>
+                <select id="startSta"></select>
             </div>
         </div>
+
+        <div class="swap-row">
+            <button class="swap-btn" id="swapBtn">⇅ 起終點互換（回程查詢）</button>
+        </div>
+
+        <div class="station-block" style="margin-bottom: 0;">
+            <div class="station-label"><span class="dot-end"></span> <span id="lblEnd">終點站（選擇路線及車站）</span></div>
+            <div class="select-pair">
+                <select id="endLine"></select>
+                <select id="endSta"></select>
+            </div>
+        </div>
+
         <div class="trip-summary" id="tripSummary">
             <span>共 -- 個站</span>
-            <span>車程約 -- 分鐘</span>
-            <span>10秒自動更新</span>
+            <span>轉乘 -- 次</span>
+            <span>總車程約 -- 分鐘</span>
         </div>
     </div>
 
-    <!-- 去程卡片 -->
-    <div class="direction-card">
-        <div class="dir-header">
-            <span class="dir-title" id="goTitle">去程</span>
-            <span class="dir-badge" id="goDirLabel">--</span>
-        </div>
-        <div class="first-last-bar" id="goFirstLast" style="display:none;"></div>
-        <div id="goList"><div style="color:#888; font-size:14px;">載入中...</div></div>
+    <div id="itineraryContainer"></div>
+
+    <div class="footer-note" id="footerNote">
+        每 10 秒自動刷新 ｜ 港鐵規定尾班車開出前 5 分鐘停止入閘
     </div>
+</div>
 
-    <!-- 回程卡片 -->
-    <div class="direction-card">
-        <div class="dir-header">
-            <span class="dir-title" id="backTitle">回程</span>
-            <span class="dir-badge" id="backDirLabel">--</span>
-        </div>
-        <div class="first-last-bar" id="backFirstLast" style="display:none;"></div>
-        <div id="backList"><div style="color:#888; font-size:14px;">載入中...</div></div>
-    </div>
+<script>
+const API_URL = "https://rt.data.gov.hk/v1/transport/mtr/getSchedule.php";
+let currentLang = "TC"; // "TC" or "EN"
 
-    <div class="status-bar">
-        港鐵規定尾班車開出前 5 分鐘停止入閘
-    </div>
+const UI_TEXT = {
+    TC: {
+        title: "🚇 港鐵全線跨線轉乘即時看板",
+        connecting: "正在連線港鐵伺服器...",
+        lastUpdate: "最後更新：",
+        lblStart: "起點站（選擇路線及車站）",
+        lblEnd: "終點站（選擇路線及車站）",
+        swapBtn: "⇅ 起終點互換（回程查詢）",
+        sameStation: "起點站與終點站相同，請選擇不同車站",
+        noRoute: "暫無法規劃該路徑",
+        stopsCount: (n) => `共 ${n} 個站`,
+        transfersCount: (n) => n === 0 ? "直達（0 次轉乘）" : `轉乘 ${n} 次`,
+        totalMins: (m) => `總車程約 ${m} 分鐘`,
+        dirTo: (dest) => `往${dest}方向`,
+        plat: (p) => `${p} 號月台`,
+        depAt: (t) => `開出 ${t}`,
+        arriving: "即將到達 🚆",
+        mins: (m) => `${m} 分鐘`,
+        etaTo: (t, sta) => `預計 ${t} 到${sta}`,
+        shortTurn: (sta) => `⚠️ 需於${sta}轉車`,
+        suggestedConn: "✓ 建議接駁班次",
+        noTrain: "目前沒有即將開出的班次（可能已過尾班車）",
+        apiErr: "伺服器暫無資料",
+        netErr: "網路連線異常，將於 10 秒後重試",
+        transferWalk: (sta, line, mins) => `🚶 於 <span class="transfer-highlight">${sta}</span> 轉乘 <span class="transfer-highlight">${line}</span>（步行轉車約 ${mins} 分鐘）`,
+        footer: "每 10 秒自動刷新 ｜ 港鐵規定尾班車開出前 5 分鐘停止入閘"
+    },
+    EN: {
+        title: "🚇 MTR Live & Transfer Board",
+        connecting: "Connecting to MTR server...",
+        lastUpdate: "Last Updated: ",
+        lblStart: "Origin (Select Line & Station)",
+        lblEnd: "Destination (Select Line & Station)",
+        swapBtn: "⇅ Swap Origin & Destination",
+        sameStation: "Origin and destination cannot be the same",
+        noRoute: "Route unavailable",
+        stopsCount: (n) => `${n} ${n > 1 ? 'Stops' : 'Stop'}`,
+        transfersCount: (n) => n === 0 ? "Direct (0 Transfers)" : `${n} ${n > 1 ? 'Transfers' : 'Transfer'}`,
+        totalMins: (m) => `Est. ${m} mins`,
+        dirTo: (dest) => `To ${dest}`,
+        plat: (p) => `Platform ${p}`,
+        depAt: (t) => `Dep ${t}`,
+        arriving: "Arriving 🚆",
+        mins: (m) => `${m} min`,
+        etaTo: (t, sta) => `ETA ${t} at ${sta}`,
+        shortTurn: (sta) => `⚠️ Change at ${sta}`,
+        suggestedConn: "✓ Suggested Connection",
+        noTrain: "No upcoming trains (Service hours may have ended)",
+        apiErr: "No data from server",
+        netErr: "Network error, retrying in 10s",
+        transferWalk: (sta, line, mins) => `🚶 Transfer at <span class="transfer-highlight">${sta}</span> to <span class="transfer-highlight">${line}</span> (~${mins} min walk)`,
+        footer: "Auto-refreshes every 10s | Gates close 5 mins before last train"
+    }
+};
 
-    <script>
-        const API_URL = "https://rt.data.gov.hk/v1/transport/mtr/getSchedule.php";
-        
-        const TML_STATIONS = [
-            { code: "WKS", name: "烏溪沙", mins: 2, firstUp: "05:38", lastUp: "23:54", firstDown: "--", lastDown: "--" },
-            { code: "MOS", name: "馬鞍山", mins: 2, firstUp: "05:40", lastUp: "23:56", firstDown: "06:34", lastDown: "00:58" },
-            { code: "HEO", name: "恆安",   mins: 2, firstUp: "05:43", lastUp: "23:59", firstDown: "06:31", lastDown: "00:55" },
-            { code: "TSH", name: "大水坑", mins: 3, firstUp: "05:45", lastUp: "00:01", firstDown: "06:29", lastDown: "00:53" },
-            { code: "SHM", name: "石門",   mins: 2, firstUp: "05:48", lastUp: "00:04", firstDown: "06:26", lastDown: "00:50" },
-            { code: "CIO", name: "第一城", mins: 2, firstUp: "05:51", lastUp: "00:07", firstDown: "06:23", lastDown: "00:47" },
-            { code: "STW", name: "沙田圍", mins: 2, firstUp: "05:53", lastUp: "00:09", firstDown: "06:21", lastDown: "00:45" },
-            { code: "CKT", name: "車公廟", mins: 3, firstUp: "05:55", lastUp: "00:11", firstDown: "06:19", lastDown: "00:43" },
-            { code: "TAW", name: "大圍",   mins: 3, firstUp: "05:58", lastUp: "00:14", firstDown: "06:16", lastDown: "00:40" },
-            { code: "HIK", name: "顯徑",   mins: 5, firstUp: "06:01", lastUp: "00:17", firstDown: "06:13", lastDown: "00:37" },
-            { code: "DIH", name: "鑽石山", mins: 2, firstUp: "06:06", lastUp: "00:22", firstDown: "06:08", lastDown: "00:32" },
-            { code: "KAT", name: "啟德",   mins: 2, firstUp: "06:08", lastUp: "00:24", firstDown: "06:06", lastDown: "00:30" },
-            { code: "SUW", name: "宋皇臺", mins: 2, firstUp: "06:10", lastUp: "00:26", firstDown: "06:04", lastDown: "00:28" },
-            { code: "TKW", name: "土瓜灣", mins: 2, firstUp: "06:12", lastUp: "00:28", firstDown: "06:02", lastDown: "00:26" },
-            { code: "HOM", name: "何文田", mins: 3, firstUp: "06:14", lastUp: "00:30", firstDown: "06:00", lastDown: "00:24" },
-            { code: "HUH", name: "紅磡",   mins: 3, firstUp: "06:17", lastUp: "00:33", firstDown: "05:57", lastDown: "00:21" },
-            { code: "ETS", name: "尖東",   mins: 2, firstUp: "06:20", lastUp: "00:36", firstDown: "06:20", lastDown: "00:44" },
-            { code: "AUS", name: "柯士甸", mins: 2, firstUp: "06:22", lastUp: "00:38", firstDown: "06:18", lastDown: "00:42" },
-            { code: "NAC", name: "南昌",   mins: 3, firstUp: "06:25", lastUp: "00:41", firstDown: "06:15", lastDown: "00:39" },
-            { code: "MEF", name: "美孚",   mins: 4, firstUp: "06:28", lastUp: "00:44", firstDown: "06:12", lastDown: "00:36" },
-            { code: "TWW", name: "荃灣西", mins: 6, firstUp: "06:32", lastUp: "00:48", firstDown: "06:08", lastDown: "00:32" },
-            { code: "KSR", name: "錦上路", mins: 4, firstUp: "06:38", lastUp: "00:54", firstDown: "06:02", lastDown: "00:26" },
-            { code: "YUL", name: "元朗",   mins: 2, firstUp: "06:42", lastUp: "00:58", firstDown: "05:58", lastDown: "00:22" },
-            { code: "LOP", name: "朗屏",   mins: 3, firstUp: "06:44", lastUp: "01:00", firstDown: "05:56", lastDown: "00:20" },
-            { code: "TIS", name: "天水圍", mins: 3, firstUp: "06:47", lastUp: "01:03", firstDown: "05:53", lastDown: "00:17" },
-            { code: "SIH", name: "兆康",   mins: 3, firstUp: "06:50", lastUp: "01:06", firstDown: "05:50", lastDown: "00:14" },
-            { code: "TUM", name: "屯門",   mins: 0, firstUp: "--", lastUp: "--", firstDown: "05:45", lastDown: "00:08" }
-        ];
+// 全港 10 條重鐵路線完整定義（中英文名稱、官方顏色、站點順序及相鄰行車時間）
+const LINES = {
+    TML: {
+        nameTC: "屯馬綫", nameEN: "Tuen Ma Line", colorNameTC: "啡色", colorNameEN: "Brown", color: "#9A3B26",
+        stations: [
+            { code: "WKS", tc: "烏溪沙", en: "Wu Kai Sha", nextMins: 2 },
+            { code: "MOS", tc: "馬鞍山", en: "Ma On Shan", nextMins: 2 },
+            { code: "HEO", tc: "恆安", en: "Heng On", nextMins: 2 },
+            { code: "TSH", tc: "大水坑", en: "Tai Shui Hang", nextMins: 3 },
+            { code: "SHM", tc: "石門", en: "Shek Mun", nextMins: 2 },
+            { code: "CIO", tc: "第一城", en: "City One", nextMins: 2 },
+            { code: "STW", tc: "沙田圍", en: "Sha Tin Wai", nextMins: 2 },
+            { code: "CKT", tc: "車公廟", en: "Che Kung Temple", nextMins: 3 },
+            { code: "TAW", tc: "大圍", en: "Tai Wai", nextMins: 3 },
+            { code: "HIK", tc: "顯徑", en: "Hin Keng", nextMins: 5 },
+            { code: "DIH", tc: "鑽石山", en: "Diamond Hill", nextMins: 2 },
+            { code: "KAT", tc: "啟德", en: "Kai Tak", nextMins: 2 },
+            { code: "SUW", tc: "宋皇臺", en: "Sung Wong Toi", nextMins: 2 },
+            { code: "TKW", tc: "土瓜灣", en: "To Kwa Wan", nextMins: 2 },
+            { code: "HOM", tc: "何文田", en: "Ho Man Tin", nextMins: 3 },
+            { code: "HUH", tc: "紅磡", en: "Hung Hom", nextMins: 3 },
+            { code: "ETS", tc: "尖東", en: "East Tsim Sha Tsui", nextMins: 2 },
+            { code: "AUS", tc: "柯士甸", en: "Austin", nextMins: 2 },
+            { code: "NAC", tc: "南昌", en: "Nam Cheong", nextMins: 3 },
+            { code: "MEF", tc: "美孚", en: "Mei Foo", nextMins: 4 },
+            { code: "TWW", tc: "荃灣西", en: "Tsuen Wan West", nextMins: 6 },
+            { code: "KSR", tc: "錦上路", en: "Kam Sheung Road", nextMins: 4 },
+            { code: "YUL", tc: "元朗", en: "Yuen Long", nextMins: 2 },
+            { code: "LOP", tc: "朗屏", en: "Long Ping", nextMins: 3 },
+            { code: "TIS", tc: "天水圍", en: "Tin Shui Wai", nextMins: 3 },
+            { code: "SIH", tc: "兆康", en: "Siu Hong", nextMins: 3 },
+            { code: "TUM", tc: "屯門", en: "Tuen Mun", nextMins: 0 }
+        ]
+    },
+    EAL: {
+        nameTC: "東鐵綫", nameEN: "East Rail Line", colorNameTC: "淺藍色", colorNameEN: "Light Blue", color: "#5EB6E4",
+        stations: [
+            { code: "ADM", tc: "金鐘", en: "Admiralty", nextMins: 4 },
+            { code: "EXC", tc: "會展", en: "Exhibition Centre", nextMins: 3 },
+            { code: "HUH", tc: "紅磡", en: "Hung Hom", nextMins: 3 },
+            { code: "MKK", tc: "旺角東", en: "Mong Kok East", nextMins: 3 },
+            { code: "KOT", tc: "九龍塘", en: "Kowloon Tong", nextMins: 4 },
+            { code: "TAW", tc: "大圍", en: "Tai Wai", nextMins: 2 },
+            { code: "SHT", tc: "沙田", en: "Sha Tin", nextMins: 3 },
+            { code: "FOT", tc: "火炭", en: "Fo Tan", nextMins: 4 },
+            { code: "UNI", tc: "大學", en: "University", nextMins: 5 },
+            { code: "TAP", tc: "大埔墟", en: "Tai Po Market", nextMins: 3 },
+            { code: "TWO", tc: "太和", en: "Tai Wo", nextMins: 4 },
+            { code: "FAN", tc: "粉嶺", en: "Fanling", nextMins: 2 },
+            { code: "SHS", tc: "上水", en: "Sheung Shui", nextMins: 4 },
+            { code: "LOW", tc: "羅湖", en: "Lo Wu", nextMins: 0 },
+            { code: "LMC", tc: "落馬洲", en: "Lok Ma Chau", nextMins: 0 }
+        ],
+        customEdges: [ ["SHS", "LOW", 4], ["SHS", "LMC", 6] ]
+    },
+    KTL: {
+        nameTC: "觀塘綫", nameEN: "Kwun Tong Line", colorNameTC: "綠色", colorNameEN: "Green", color: "#00AB4E",
+        stations: [
+            { code: "WHA", tc: "黃埔", en: "Whampoa", nextMins: 2 },
+            { code: "HOM", tc: "何文田", en: "Ho Man Tin", nextMins: 3 },
+            { code: "YMT", tc: "油麻地", en: "Yau Ma Tei", nextMins: 2 },
+            { code: "MOK", tc: "旺角", en: "Mong Kok", nextMins: 2 },
+            { code: "PRE", tc: "太子", en: "Prince Edward", nextMins: 2 },
+            { code: "SKM", tc: "石硤尾", en: "Shek Kip Mei", nextMins: 2 },
+            { code: "KOT", tc: "九龍塘", en: "Kowloon Tong", nextMins: 2 },
+            { code: "LOF", tc: "樂富", en: "Lok Fu", nextMins: 2 },
+            { code: "WTS", tc: "黃大仙", en: "Wong Tai Sin", nextMins: 2 },
+            { code: "DIH", tc: "鑽石山", en: "Diamond Hill", nextMins: 2 },
+            { code: "CHH", tc: "彩虹", en: "Choi Hung", nextMins: 3 },
+            { code: "KOB", tc: "九龍灣", en: "Kowloon Bay", nextMins: 2 },
+            { code: "NTK", tc: "牛頭角", en: "Ngau Tau Kok", nextMins: 2 },
+            { code: "KWT", tc: "觀塘", en: "Kwun Tong", nextMins: 2 },
+            { code: "LAT", tc: "藍田", en: "Lam Tin", nextMins: 3 },
+            { code: "YAT", tc: "油塘", en: "Yau Tong", nextMins: 3 },
+            { code: "TIK", tc: "調景嶺", en: "Tiu Keng Leng", nextMins: 0 }
+        ]
+    },
+    TWL: {
+        nameTC: "荃灣綫", nameEN: "Tsuen Wan Line", colorNameTC: "紅色", colorNameEN: "Red", color: "#E2231A",
+        stations: [
+            { code: "CEN", tc: "中環", en: "Central", nextMins: 2 },
+            { code: "ADM", tc: "金鐘", en: "Admiralty", nextMins: 4 },
+            { code: "TST", tc: "尖沙咀", en: "Tsim Sha Tsui", nextMins: 2 },
+            { code: "JOR", tc: "佐敦", en: "Jordan", nextMins: 2 },
+            { code: "YMT", tc: "油麻地", en: "Yau Ma Tei", nextMins: 2 },
+            { code: "MOK", tc: "旺角", en: "Mong Kok", nextMins: 2 },
+            { code: "PRE", tc: "太子", en: "Prince Edward", nextMins: 2 },
+            { code: "SSP", tc: "深水埗", en: "Sham Shui Po", nextMins: 2 },
+            { code: "CSW", tc: "長沙灣", en: "Cheung Sha Wan", nextMins: 2 },
+            { code: "LCK", tc: "荔枝角", en: "Lai Chi Kok", nextMins: 2 },
+            { code: "MEF", tc: "美孚", en: "Mei Foo", nextMins: 3 },
+            { code: "LAK", tc: "荔景", en: "Lai King", nextMins: 3 },
+            { code: "KWF", tc: "葵芳", en: "Kwai Fong", nextMins: 2 },
+            { code: "KWH", tc: "葵興", en: "Kwai Hing", nextMins: 2 },
+            { code: "TWH", tc: "大窩口", en: "Tai Wo Hau", nextMins: 3 },
+            { code: "TSW", tc: "荃灣", en: "Tsuen Wan", nextMins: 0 }
+        ]
+    },
+    ISL: {
+        nameTC: "港島綫", nameEN: "Island Line", colorNameTC: "深藍色", colorNameEN: "Dark Blue", color: "#0075C9",
+        stations: [
+            { code: "KET", tc: "堅尼地城", en: "Kennedy Town", nextMins: 2 },
+            { code: "HKU", tc: "香港大學", en: "HKU", nextMins: 2 },
+            { code: "SYP", tc: "西營盤", en: "Sai Ying Pun", nextMins: 2 },
+            { code: "SHW", tc: "上環", en: "Sheung Wan", nextMins: 2 },
+            { code: "CEN", tc: "中環", en: "Central", nextMins: 2 },
+            { code: "ADM", tc: "金鐘", en: "Admiralty", nextMins: 2 },
+            { code: "WAC", tc: "灣仔", en: "Wan Chai", nextMins: 2 },
+            { code: "CAB", tc: "銅鑼灣", en: "Causeway Bay", nextMins: 2 },
+            { code: "TIH", tc: "天后", en: "Tin Hau", nextMins: 2 },
+            { code: "FOH", tc: "炮台山", en: "Fortress Hill", nextMins: 2 },
+            { code: "NOP", tc: "北角", en: "North Point", nextMins: 2 },
+            { code: "QUB", tc: "鰂魚涌", en: "Quarry Bay", nextMins: 2 },
+            { code: "TAK", tc: "太古", en: "Tai Koo", nextMins: 2 },
+            { code: "SWH", tc: "西灣河", en: "Sai Wan Ho", nextMins: 2 },
+            { code: "SKW", tc: "筲箕灣", en: "Shau Kei Wan", nextMins: 2 },
+            { code: "HFC", tc: "杏花邨", en: "Heng Fa Chuen", nextMins: 3 },
+            { code: "CHW", tc: "柴灣", en: "Chai Wan", nextMins: 0 }
+        ]
+    },
+    SIL: {
+        nameTC: "南港島綫", nameEN: "South Island Line", colorNameTC: "淺綠色", colorNameEN: "Light Green", color: "#B5BD00",
+        stations: [
+            { code: "ADM", tc: "金鐘", en: "Admiralty", nextMins: 4 },
+            { code: "OCP", tc: "海洋公園", en: "Ocean Park", nextMins: 2 },
+            { code: "WCH", tc: "黃竹坑", en: "Wong Chuk Hang", nextMins: 2 },
+            { code: "LET", tc: "利東", en: "Lei Tung", nextMins: 2 },
+            { code: "SOH", tc: "海怡半島", en: "South Horizons", nextMins: 0 }
+        ]
+    },
+    TKL: {
+        nameTC: "將軍澳綫", nameEN: "Tseung Kwan O Line", colorNameTC: "紫色", colorNameEN: "Purple", color: "#7D499D",
+        stations: [
+            { code: "NOP", tc: "北角", en: "North Point", nextMins: 2 },
+            { code: "QUB", tc: "鰂魚涌", en: "Quarry Bay", nextMins: 4 },
+            { code: "YAT", tc: "油塘", en: "Yau Tong", nextMins: 3 },
+            { code: "TIK", tc: "調景嶺", en: "Tiu Keng Leng", nextMins: 2 },
+            { code: "TKO", tc: "將軍澳", en: "Tseung Kwan O", nextMins: 2 },
+            { code: "HAH", tc: "坑口", en: "Hang Hau", nextMins: 2 },
+            { code: "POA", tc: "寶琳", en: "Po Lam", nextMins: 0 },
+            { code: "LHP", tc: "康城", en: "LOHAS Park", nextMins: 0 }
+        ],
+        customEdges: [ ["TKO", "HAH", 2], ["HAH", "POA", 2], ["TKO", "LHP", 4] ]
+    },
+    TCL: {
+        nameTC: "東涌綫", nameEN: "Tung Chung Line", colorNameTC: "橙色", colorNameEN: "Orange", color: "#F38B00",
+        stations: [
+            { code: "HOK", tc: "香港", en: "Hong Kong", nextMins: 3 },
+            { code: "KOW", tc: "九龍", en: "Kowloon", nextMins: 3 },
+            { code: "OLY", tc: "奧運", en: "Olympic", nextMins: 2 },
+            { code: "NAC", tc: "南昌", en: "Nam Cheong", nextMins: 3 },
+            { code: "LAK", tc: "荔景", en: "Lai King", nextMins: 5 },
+            { code: "TSY", tc: "青衣", en: "Tsing Yi", nextMins: 6 },
+            { code: "SUN", tc: "欣澳", en: "Sunny Bay", nextMins: 6 },
+            { code: "TUC", tc: "東涌", en: "Tung Chung", nextMins: 0 }
+        ]
+    },
+    AEL: {
+        nameTC: "機場快綫", nameEN: "Airport Express", colorNameTC: "藍綠色", colorNameEN: "Teal", color: "#00888A",
+        stations: [
+            { code: "HOK", tc: "香港", en: "Hong Kong", nextMins: 3 },
+            { code: "KOW", tc: "九龍", en: "Kowloon", nextMins: 9 },
+            { code: "TSY", tc: "青衣", en: "Tsing Yi", nextMins: 12 },
+            { code: "AIR", tc: "機場", en: "Airport", nextMins: 2 },
+            { code: "AWE", tc: "博覽館", en: "AsiaWorld-Expo", nextMins: 0 }
+        ]
+    },
+    DRL: {
+        nameTC: "迪士尼綫", nameEN: "Disneyland Resort Line", colorNameTC: "粉紅色", colorNameEN: "Pink", color: "#F173AC",
+        stations: [
+            { code: "SUN", tc: "欣澳", en: "Sunny Bay", nextMins: 4 },
+            { code: "DIS", tc: "迪士尼", en: "Disneyland Resort", nextMins: 0 }
+        ]
+    }
+};
 
-        const CODE_TO_INDEX = {};
-        const CODE_TO_NAME = { "SHS": "上水", "LMC": "落馬洲" };
-        TML_STATIONS.forEach((s, i) => {
-            CODE_TO_INDEX[s.code] = i;
-            CODE_TO_NAME[s.code] = s.name;
-        });
+// 跨線轉乘接駁定義 [站A, 線A, 站B, 線B, 步行轉乘分鐘]
+const TRANSFERS = [
+    ["NAC", "TML", "NAC", "TCL", 3],
+    ["TAW", "TML", "TAW", "EAL", 2],
+    ["HUH", "TML", "HUH", "EAL", 3],
+    ["DIH", "TML", "DIH", "KTL", 3],
+    ["HOM", "TML", "HOM", "KTL", 3],
+    ["MEF", "TML", "MEF", "TWL", 4],
+    ["ETS", "TML", "TST", "TWL", 6],
+    ["ADM", "EAL", "ADM", "TWL", 2],
+    ["ADM", "EAL", "ADM", "ISL", 2],
+    ["ADM", "EAL", "ADM", "SIL", 3],
+    ["ADM", "TWL", "ADM", "ISL", 1],
+    ["ADM", "TWL", "ADM", "SIL", 3],
+    ["ADM", "ISL", "ADM", "SIL", 3],
+    ["KOT", "EAL", "KOT", "KTL", 3],
+    ["CEN", "TWL", "CEN", "ISL", 2],
+    ["CEN", "TWL", "HOK", "TCL", 5],
+    ["CEN", "ISL", "HOK", "TCL", 5],
+    ["CEN", "TWL", "HOK", "AEL", 5],
+    ["CEN", "ISL", "HOK", "AEL", 5],
+    ["HOK", "TCL", "HOK", "AEL", 3],
+    ["KOW", "TCL", "KOW", "AEL", 3],
+    ["TSY", "TCL", "TSY", "AEL", 2],
+    ["LAK", "TWL", "LAK", "TCL", 1],
+    ["SUN", "TCL", "SUN", "DRL", 2],
+    ["MOK", "KTL", "MOK", "TWL", 1],
+    ["PRE", "KTL", "PRE", "TWL", 1],
+    ["YMT", "KTL", "YMT", "TWL", 2],
+    ["NOP", "ISL", "NOP", "TKL", 1],
+    ["QUB", "ISL", "QUB", "TKL", 3],
+    ["YAT", "KTL", "YAT", "TKL", 1],
+    ["TIK", "KTL", "TIK", "TKL", 1]
+];
 
-        const startSelect = document.getElementById("startSelect");
-        const endSelect = document.getElementById("endSelect");
-        const swapBtn = document.getElementById("swapBtn");
+// 建立車站中英對照表與路線索引表
+const STA_MAP = {};
+const LINE_STA_INDEX = {};
+Object.entries(LINES).forEach(([lineCode, lineObj]) => {
+    LINE_STA_INDEX[lineCode] = {};
+    lineObj.stations.forEach((s, idx) => {
+        STA_MAP[s.code] = { tc: s.tc, en: s.en };
+        LINE_STA_INDEX[lineCode][s.code] = idx;
+    });
+});
 
-        TML_STATIONS.forEach((sta, idx) => {
-            startSelect.add(new Option(sta.name, idx));
-            endSelect.add(new Option(sta.name, idx));
-        });
-        startSelect.value = 5;  // 第一城
-        endSelect.value = 18;   // 南昌
+function getStaName(code) {
+    if (!STA_MAP[code]) return code;
+    return currentLang === "TC" ? STA_MAP[code].tc : STA_MAP[code].en;
+}
 
-        function calcTrip(sIdx, eIdx) {
-            const sta = TML_STATIONS[sIdx];
-            if (sIdx < eIdx) {
-                let mins = 0;
-                for (let i = sIdx; i < eIdx; i++) mins += TML_STATIONS[i].mins;
-                return { dir: "UP", label: "往屯門方向", stops: eIdx - sIdx, mins, first: sta.firstUp, last: sta.lastUp };
+function getLineName(lineCode) {
+    const l = LINES[lineCode];
+    return currentLang === "TC" ? l.nameTC : l.nameEN;
+}
+
+// 建立全港鐵加權路網圖（同線優先，避免無故轉乘）
+function buildGraph() {
+    const graph = {};
+    const addEdge = (u, v, cost, mins, isTransfer, lineCode) => {
+        if (!graph[u]) graph[u] = [];
+        graph[u].push({ to: v, cost, mins, isTransfer, lineCode });
+    };
+
+    Object.entries(LINES).forEach(([lineCode, lineObj]) => {
+        const stas = lineObj.stations;
+        if (lineObj.customEdges) {
+            const normalLimit = lineCode === "EAL" ? "SHS" : "TKO";
+            for (let i = 0; i < stas.length; i++) {
+                if (stas[i].code === normalLimit) break;
+                const u = `${lineCode}:${stas[i].code}`;
+                const v = `${lineCode}:${stas[i+1].code}`;
+                addEdge(u, v, stas[i].nextMins, stas[i].nextMins, false, lineCode);
+                addEdge(v, u, stas[i].nextMins, stas[i].nextMins, false, lineCode);
+            }
+            lineObj.customEdges.forEach(([c1, c2, m]) => {
+                const u = `${lineCode}:${c1}`;
+                const v = `${lineCode}:${c2}`;
+                addEdge(u, v, m, m, false, lineCode);
+                addEdge(v, u, m, m, false, lineCode);
+            });
+        } else {
+            for (let i = 0; i < stas.length - 1; i++) {
+                const u = `${lineCode}:${stas[i].code}`;
+                const v = `${lineCode}:${stas[i+1].code}`;
+                const m = stas[i].nextMins;
+                addEdge(u, v, m, m, false, lineCode);
+                addEdge(v, u, m, m, false, lineCode);
+            }
+        }
+    });
+
+    // 加入轉乘懲罰權重 (+15) 確保同線站點優先直達
+    TRANSFERS.forEach(([s1, l1, s2, l2, walkMins]) => {
+        const u = `${l1}:${s1}`;
+        const v = `${l2}:${s2}`;
+        addEdge(u, v, walkMins + 15, walkMins, true, l2);
+        addEdge(v, u, walkMins + 15, walkMins, true, l1);
+    });
+
+    return graph;
+}
+
+const GRAPH = buildGraph();
+
+// Dijkstra 最短路徑演算法
+function findShortestPath(startNode, endNode) {
+    if (startNode === endNode) return null;
+    const dist = {};
+    const prev = {};
+    const visited = new Set();
+    Object.keys(GRAPH).forEach(k => dist[k] = Infinity);
+    dist[startNode] = 0;
+
+    while (true) {
+        let u = null;
+        let minDist = Infinity;
+        for (const node in dist) {
+            if (!visited.has(node) && dist[node] < minDist) {
+                minDist = dist[node];
+                u = node;
+            }
+        }
+        if (u === null || u === endNode) break;
+        visited.add(u);
+
+        for (const edge of (GRAPH[u] || [])) {
+            const alt = dist[u] + edge.cost;
+            if (alt < dist[edge.to]) {
+                dist[edge.to] = alt;
+                prev[edge.to] = { node: u, edge };
+            }
+        }
+    }
+
+    if (!prev[endNode]) return null;
+    const steps = [];
+    let curr = endNode;
+    while (curr !== startNode) {
+        steps.unshift(prev[curr].edge);
+        curr = prev[curr].node;
+    }
+
+    // 將連續同線步驟合併成段落 (Legs)
+    const legs = [];
+    let currentLeg = null;
+    let totalStops = 0;
+    let totalMins = 0;
+
+    steps.forEach((step, idx) => {
+        totalMins += step.mins;
+        if (step.isTransfer) {
+            if (currentLeg) {
+                legs.push(currentLeg);
+                currentLeg = null;
+            }
+            const [toLine, toSta] = step.to.split(":");
+            legs.push({ type: "transfer", toLine, toSta, walkMins: step.mins });
+        } else {
+            totalStops++;
+            const fromSta = idx === 0 ? startNode.split(":")[1] : steps[idx - 1].to.split(":")[1];
+            const toSta = step.to.split(":")[1];
+            if (!currentLeg) {
+                currentLeg = { type: "ride", line: step.lineCode, fromSta, toSta, mins: step.mins, stops: 1 };
             } else {
-                let mins = 0;
-                for (let i = eIdx; i < sIdx; i++) mins += TML_STATIONS[i].mins;
-                return { dir: "DOWN", label: "往烏溪沙方向", stops: sIdx - eIdx, mins, first: sta.firstDown, last: sta.lastDown };
+                currentLeg.toSta = toSta;
+                currentLeg.mins += step.mins;
+                currentLeg.stops += 1;
             }
         }
+    });
+    if (currentLeg) legs.push(currentLeg);
 
-        async function fetchTrains(staCode, dirKey, travelMins, destIdx, containerId) {
-            const container = document.getElementById(containerId);
-            try {
-                const res = await fetch(`${API_URL}?line=TML&sta=${staCode}&lang=TC`);
-                const data = await res.json();
+    return { legs, totalStops, totalMins };
+}
 
-                if (data.status !== 1) {
-                    container.innerHTML = `<div style="color:#ff9500;">${data.message || '暫無資料'}</div>`;
-                    return;
-                }
+// 判定港鐵 API 方向代碼 (UP 或 DOWN)
+function getApiDirection(lineCode, fromSta, toSta) {
+    const idxFrom = LINE_STA_INDEX[lineCode][fromSta];
+    const idxTo = LINE_STA_INDEX[lineCode][toSta];
+    const stas = LINES[lineCode].stations;
 
-                const trains = data.data[`TML-${staCode}`][dirKey] || [];
-                if (trains.length === 0) {
-                    container.innerHTML = `<div style="color:#888;">目前沒有即將開出的班次（可能已過尾班車時間）</div>`;
-                    return;
-                }
+    if (lineCode === "TML" || lineCode === "KTL" || lineCode === "TWL" || lineCode === "ISL" || lineCode === "TKL" || lineCode === "TCL" || lineCode === "AEL" || lineCode === "DRL") {
+        // 港鐵規範中，大多數路線順序列為 UP，逆序列為 DOWN
+        // 註：EAL 與 SIL 方向相反（往金鐘為 DOWN，往羅湖/海怡半島為 UP）
+        return idxFrom < idxTo ? "UP" : "DOWN";
+    }
+    if (lineCode === "EAL" || lineCode === "SIL") {
+        return idxFrom < idxTo ? "UP" : "DOWN";
+    }
+    return idxFrom < idxTo ? "UP" : "DOWN";
+}
 
-                container.innerHTML = trains.map(t => {
-                    const destName = CODE_TO_NAME[t.dest] || t.dest;
-                    const ttnt = t.ttnt;
-                    const isSoon = ttnt === "0";
-                    const waitText = isSoon ? "即將到達 🚆" : `${ttnt} 分鐘`;
-                    
-                    let warnHtml = "";
-                    if (CODE_TO_INDEX[t.dest] !== undefined) {
-                        const tEndIdx = CODE_TO_INDEX[t.dest];
-                        if ((dirKey === "UP" && tEndIdx < destIdx) || (dirKey === "DOWN" && tEndIdx > destIdx)) {
-                            warnHtml = `<span class="warning-tag"> ⚠️ 需於${destName}轉車</span>`;
-                        }
-                    }
+// 取得該段方向終點站名稱顯示
+function getDirectionTerminalName(lineCode, apiDir, toSta) {
+    const stas = LINES[lineCode].stations;
+    if (lineCode === "EAL" && apiDir === "UP") {
+        return toSta === "LMC" ? getStaName("LMC") : getStaName("LOW");
+    }
+    if (lineCode === "TKL" && apiDir === "UP") {
+        return toSta === "LHP" ? getStaName("LHP") : getStaName("POA");
+    }
+    const terminalCode = apiDir === "UP" ? stas[stas.length - 1].code : stas[0].code;
+    return getStaName(terminalCode);
+}
 
-                    let etaText = "";
-                    let timeDisplay = "";
-                    if (t.time && t.time.includes(" ")) {
-                        timeDisplay = t.time.split(" ")[1];
-                        const depDate = new Date(t.time.replace(" ", "T"));
-                        if (!isNaN(depDate)) {
-                            const arrDate = new Date(depDate.getTime() + travelMins * 60000);
-                            const hh = String(arrDate.getHours()).padStart(2, '0');
-                            const mm = String(arrDate.getMinutes()).padStart(2, '0');
-                            etaText = `預計 ${hh}:${mm} 抵達`;
-                        }
-                    }
+// 初始化與事件綁定
+const startLineEl = document.getElementById("startLine");
+const startStaEl = document.getElementById("startSta");
+const endLineEl = document.getElementById("endLine");
+const endStaEl = document.getElementById("endSta");
+const langToggleBtn = document.getElementById("langToggleBtn");
+const swapBtn = document.getElementById("swapBtn");
 
-                    return `
-                        <div class="train-item">
-                            <div class="train-left">
-                                <div class="train-dest">往 ${destName} ${warnHtml}</div>
-                                <div class="train-meta">${t.plat} 號月台 ｜ 開出 ${timeDisplay}</div>
-                            </div>
-                            <div class="train-right">
-                                <div class="wait-time ${isSoon ? 'wait-soon' : ''}">${waitText}</div>
-                                <div class="eta-dest">${etaText}</div>
-                            </div>
-                        </div>
-                    `;
-                }).join("");
-            } catch (err) {
-                container.innerHTML = `<div style="color:#ff3b30;">連線失敗，將於 10 秒後重試</div>`;
-            }
+function renderLineOptions() {
+    const prevStartLine = startLineEl.value || "TML";
+    const prevEndLine = endLineEl.value || "TCL";
+
+    startLineEl.innerHTML = "";
+    endLineEl.innerHTML = "";
+
+    Object.entries(LINES).forEach(([code, obj]) => {
+        const label = currentLang === "TC"
+            ? `${obj.nameTC} (${obj.colorNameTC})`
+            : `${obj.nameEN} (${obj.colorNameEN})`;
+        startLineEl.add(new Option(label, code));
+        endLineEl.add(new Option(label, code));
+    });
+
+    startLineEl.value = prevStartLine;
+    endLineEl.value = prevEndLine;
+}
+
+function populateStations(lineSelect, staSelect, defaultStaCode) {
+    const prevSta = defaultStaCode || staSelect.value;
+    const lineCode = lineSelect.value;
+    const stas = LINES[lineCode].stations;
+
+    staSelect.innerHTML = "";
+    stas.forEach(s => {
+        const name = currentLang === "TC" ? s.tc : s.en;
+        staSelect.add(new Option(name, s.code));
+    });
+
+    if ([...staSelect.options].some(o => o.value === prevSta)) {
+        staSelect.value = prevSta;
+    }
+}
+
+function applyUIText() {
+    const t = UI_TEXT[currentLang];
+    document.getElementById("appTitle").innerText = t.title;
+    document.getElementById("lblStart").innerText = t.lblStart;
+    document.getElementById("lblEnd").innerText = t.lblEnd;
+    swapBtn.innerText = t.swapBtn;
+    document.getElementById("footerNote").innerText = t.footer;
+    langToggleBtn.innerText = currentLang === "TC" ? "English" : "繁體中文";
+}
+
+async function fetchLegTrains(leg, earliestArrivalTimestamp, containerId) {
+    const container = document.getElementById(containerId);
+    const t = UI_TEXT[currentLang];
+    const apiDir = getApiDirection(leg.line, leg.fromSta, leg.toSta);
+    const apiLang = currentLang === "TC" ? "TC" : "EN";
+
+    try {
+        const res = await fetch(`${API_URL}?line=${leg.line}&sta=${leg.fromSta}&lang=${apiLang}`);
+        const data = await res.json();
+
+        if (data.status !== 1) {
+            container.innerHTML = `<div style="color:#ff9500; font-size:13px;">${data.message || t.apiErr}</div>`;
+            return null;
         }
 
-        async function updateAll() {
-            const sIdx = parseInt(startSelect.value);
-            const eIdx = parseInt(endSelect.value);
+        const staKey = `${leg.line}-${leg.fromSta}`;
+        const trains = (data.data[staKey] && data.data[staKey][apiDir]) || [];
 
-            if (sIdx === eIdx) {
-                document.getElementById("tripSummary").innerHTML = `<span style="color:#ff3b30;">起點站與終點站不能相同</span>`;
-                return;
+        if (trains.length === 0) {
+            container.innerHTML = `<div style="color:#888; font-size:13px;">${t.noTrain}</div>`;
+            return null;
+        }
+
+        let firstSuggestedEta = null;
+        let hasMarkedSuggested = false;
+
+        container.innerHTML = trains.map(tr => {
+            const destName = getStaName(tr.dest);
+            const ttnt = tr.ttnt;
+            const isSoon = ttnt === "0";
+            const waitStr = isSoon ? t.arriving : t.mins(ttnt);
+            const timeOnly = tr.time && tr.time.includes(" ") ? tr.time.split(" ")[1] : tr.time;
+
+            // 檢查中途終點站
+            let warnTag = "";
+            const destIdx = LINE_STA_INDEX[leg.line][tr.dest];
+            const targetIdx = LINE_STA_INDEX[leg.line][leg.toSta];
+            if (destIdx !== undefined && targetIdx !== undefined) {
+                if ((apiDir === "UP" && destIdx < targetIdx) || (apiDir === "DOWN" && destIdx > targetIdx)) {
+                    warnTag = `<span class="tag-warn">${t.shortTurn(destName)}</span>`;
+                }
             }
 
-            const startSta = TML_STATIONS[sIdx];
-            const endSta = TML_STATIONS[eIdx];
-            const goInfo = calcTrip(sIdx, eIdx);
-            const backInfo = calcTrip(eIdx, sIdx);
+            // 計算到達該段終點時間與接駁建議
+            let etaStr = "";
+            let catchTag = "";
+            if (tr.time && tr.time.includes(" ")) {
+                const depDate = new Date(tr.time.replace(" ", "T"));
+                if (!isNaN(depDate)) {
+                    const arrDate = new Date(depDate.getTime() + leg.mins * 60000);
+                    const hh = String(arrDate.getHours()).padStart(2, "0");
+                    const mm = String(arrDate.getMinutes()).padStart(2, "0");
+                    etaStr = t.etaTo(`${hh}:${mm}`, getStaName(leg.toSta));
 
-            document.getElementById("tripSummary").innerHTML = `
-                <span>共 ${goInfo.stops} 個站</span>
-                <span>車程約 ${goInfo.mins} 分鐘</span>
-                <span>每 10 秒更新</span>
+                    if (earliestArrivalTimestamp && !hasMarkedSuggested && depDate.getTime() >= earliestArrivalTimestamp && !warnTag) {
+                        catchTag = `<span class="tag-catch">${t.suggestedConn}</span>`;
+                        hasMarkedSuggested = true;
+                    }
+                    if (!firstSuggestedEta && !warnTag) {
+                        firstSuggestedEta = arrDate.getTime();
+                    }
+                }
+            }
+
+            return `
+                <div class="train-item">
+                    <div class="train-left">
+                        <div class="train-dest">${t.dirTo(destName)} ${warnTag} ${catchTag}</div>
+                        <div class="train-meta">${t.plat(tr.plat)} ｜ ${t.depAt(timeOnly)}</div>
+                    </div>
+                    <div class="train-right">
+                        <div class="wait-time ${isSoon ? 'wait-soon' : ''}">${waitStr}</div>
+                        <div class="eta-dest">${etaStr}</div>
+                    </div>
+                </div>
             `;
+        }).join("");
 
-            document.getElementById("goTitle").innerText = `${startSta.name} ➔ ${endSta.name}`;
-            document.getElementById("goDirLabel").innerText = goInfo.label;
-            const goFL = document.getElementById("goFirstLast");
-            goFL.style.display = "flex";
-            goFL.innerHTML = `<span>🌅 頭班車：${goInfo.first}</span><span>🌃 尾班車：${goInfo.last}</span>`;
+        return firstSuggestedEta;
+    } catch (e) {
+        container.innerHTML = `<div style="color:#ff3b30; font-size:13px;">${t.netErr}</div>`;
+        return null;
+    }
+}
 
-            document.getElementById("backTitle").innerText = `${endSta.name} ➔ ${startSta.name}`;
-            document.getElementById("backDirLabel").innerText = backInfo.label;
-            const backFL = document.getElementById("backFirstLast");
-            backFL.style.display = "flex";
-            backFL.innerHTML = `<span>🌅 頭班車：${backInfo.first}</span><span>🌃 尾班車：${backInfo.last}</span>`;
+async function updateBoard() {
+    const t = UI_TEXT[currentLang];
+    const sLine = startLineEl.value;
+    const sSta = startStaEl.value;
+    const eLine = endLineEl.value;
+    const eSta = endStaEl.value;
+    const container = document.getElementById("itineraryContainer");
 
-            await Promise.all([
-                fetchTrains(startSta.code, goInfo.dir, goInfo.mins, eIdx, "goList"),
-                fetchTrains(endSta.code, backInfo.dir, backInfo.mins, sIdx, "backList")
-            ]);
+    if (sLine === eLine && sSta === eSta) {
+        document.getElementById("tripSummary").innerHTML = `<span style="color:#ff3b30;">${t.sameStation}</span>`;
+        container.innerHTML = "";
+        return;
+    }
 
-            const now = new Date();
-            document.getElementById("lastUpdate").innerText = `最後更新：${now.toTimeString().split(" ")[0]}`;
+    const plan = findShortestPath(`${sLine}:${sSta}`, `${eLine}:${eSta}`);
+    if (!plan) {
+        document.getElementById("tripSummary").innerHTML = `<span style="color:#ff3b30;">${t.noRoute}</span>`;
+        container.innerHTML = "";
+        return;
+    }
+
+    const transferCount = plan.legs.filter(l => l.type === "transfer").length;
+    document.getElementById("tripSummary").innerHTML = `
+        <span>${t.stopsCount(plan.totalStops)}</span>
+        <span>${t.transfersCount(transferCount)}</span>
+        <span>${t.totalMins(plan.totalMins)}</span>
+    `;
+
+    // 先建立卡片骨架
+    container.innerHTML = plan.legs.map((leg, idx) => {
+        if (leg.type === "transfer") {
+            return `<div class="transfer-banner">${t.transferWalk(getStaName(leg.toSta), getLineName(leg.toLine), leg.walkMins)}</div>`;
+        } else {
+            const lineObj = LINES[leg.line];
+            const apiDir = getApiDirection(leg.line, leg.fromSta, leg.toSta);
+            const termName = getDirectionTerminalName(leg.line, apiDir, leg.toSta);
+            return `
+                <div class="leg-card" style="border-left-color: ${lineObj.color};">
+                    <div class="leg-header">
+                        <span class="leg-route">${getStaName(leg.fromSta)} ➔ ${getStaName(leg.toSta)}</span>
+                        <span class="leg-badge" style="background: ${lineObj.color};">${getLineName(leg.line)} · ${t.dirTo(termName)}</span>
+                    </div>
+                    <div id="leg-list-${idx}"><div style="color:#888; font-size:13px;">...</div></div>
+                </div>
+            `;
         }
+    }).join("");
 
-        startSelect.addEventListener("change", updateAll);
-        endSelect.addEventListener("change", updateAll);
-        swapBtn.addEventListener("click", () => {
-            const temp = startSelect.value;
-            startSelect.value = endSelect.value;
-            endSelect.value = temp;
-            updateAll();
-        });
+    // 依序抓取各段即時班次並推算轉乘接駁時間
+    let rollingEta = null;
+    for (let i = 0; i < plan.legs.length; i++) {
+        const leg = plan.legs[i];
+        if (leg.type === "transfer") {
+            if (rollingEta) rollingEta += leg.walkMins * 60000;
+        } else {
+            const legEta = await fetchLegTrains(leg, rollingEta, `leg-list-${i}`);
+            if (legEta) rollingEta = legEta;
+        }
+    }
 
-        updateAll();
-        setInterval(updateAll, 10000);
-    </script>
+    const now = new Date();
+    const hh = String(now.getHours()).padStart(2, "0");
+    const mm = String(now.getMinutes()).padStart(2, "0");
+    const ss = String(now.getSeconds()).padStart(2, "0");
+    document.getElementById("lastUpdate").innerText = `${t.lastUpdate}${hh}:${mm}:${ss}`;
+}
+
+// 綁定選單即時變更事件
+startLineEl.addEventListener("change", () => {
+    populateStations(startLineEl, startStaEl);
+    updateBoard();
+});
+startStaEl.addEventListener("change", updateBoard);
+
+endLineEl.addEventListener("change", () => {
+    populateStations(endLineEl, endStaEl);
+    updateBoard();
+});
+endStaEl.addEventListener("change", updateBoard);
+
+// 起終點互換
+swapBtn.addEventListener("click", () => {
+    const tmpLine = startLineEl.value;
+    const tmpSta = startStaEl.value;
+
+    startLineEl.value = endLineEl.value;
+    populateStations(startLineEl, startStaEl, endStaEl.value);
+
+    endLineEl.value = tmpLine;
+    populateStations(endLineEl, endStaEl, tmpSta);
+
+    updateBoard();
+});
+
+// 中英文切換
+langToggleBtn.addEventListener("click", () => {
+    currentLang = currentLang === "TC" ? "EN" : "TC";
+    const curStartSta = startStaEl.value;
+    const curEndSta = endStaEl.value;
+
+    applyUIText();
+    renderLineOptions();
+    populateStations(startLineEl, startStaEl, curStartSta);
+    populateStations(endLineEl, endStaEl, curEndSta);
+    updateBoard();
+});
+
+// 啟動初始化（預設：屯馬綫 第一城 ➔ 東涌綫 東涌）
+applyUIText();
+renderLineOptions();
+startLineEl.value = "TML";
+populateStations(startLineEl, startStaEl, "CIO");
+endLineEl.value = "TCL";
+populateStations(endLineEl, endStaEl, "TUC");
+
+updateBoard();
+setInterval(updateBoard, 10000);
+</script>
 </body>
 </html>
