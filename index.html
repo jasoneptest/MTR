@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="zh-Hant-HK">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <title>屯馬綫即時班次</title>
+    <style>
+        :root {
+            --tml-brown: #9a3b26;
+            --bg-color: #121212;
+            --card-bg: #1e1e1e;
+            --text-main: #ffffff;
+            --text-sub: #aaaaaa;
+            --accent: #ffcc00;
+        }
+        * { box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", sans-serif; }
+        body { background-color: var(--bg-color); color: var(--text-main); margin: 0; padding: 15px; padding-bottom: 40px; }
+        
+        .header { background: var(--tml-brown); padding: 16px; border-radius: 14px; text-align: center; margin-bottom: 15px; box-shadow: 0 4px 12px rgba(0,0,0,0.4); }
+        .header h1 { margin: 0; font-size: 20px; letter-spacing: 1px; }
+        .header p { margin: 5px 0 0; font-size: 13px; opacity: 0.9; }
+
+        .selector-card { background: var(--card-bg); padding: 15px; border-radius: 14px; margin-bottom: 15px; }
+        .route-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+        .select-group { flex: 1; }
+        .select-group label { display: block; font-size: 12px; color: var(--text-sub); margin-bottom: 4px; }
+        select { width: 100%; padding: 10px; font-size: 16px; font-weight: bold; background: #2c2c2e; color: white; border: 1px solid #3a3a3c; border-radius: 10px; appearance: none; }
+        
+        .swap-btn { background: #2c2c2e; color: var(--accent); border: 1px solid #3a3a3c; border-radius: 50%; width: 42px; height: 42px; font-size: 18px; display: flex; align-items: center; justify-content: center; margin-top: 18px; cursor: pointer; }
+        .swap-btn:active { background: #3a3a3c; }
+
+        .trip-summary { margin-top: 12px; padding-top: 12px; border-top: 1px solid #2c2c2e; display: flex; justify-content: space-around; font-size: 14px; color: var(--accent); font-weight: 600; }
+
+        .direction-card { background: var(--card-bg); border-radius: 14px; padding: 15px; margin-bottom: 15px; }
+        .dir-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #2c2c2e; padding-bottom: 10px; margin-bottom: 10px; }
+        .dir-title { font-size: 16px; font-weight: bold; }
+        .dir-badge { font-size: 12px; background: var(--tml-brown); padding: 3px 8px; border-radius: 6px; }
+
+        .first-last-bar { background: #262629; padding: 8px 10px; border-radius: 8px; font-size: 12px; color: #dddddd; margin-bottom: 10px; display: flex; justify-content: space-between; flex-wrap: wrap; gap: 6px; }
+
+        .train-item { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid #2a2a2c; }
+        .train-item:last-child { border-bottom: none; padding-bottom: 0; }
+        .train-left { display: flex; flex-direction: column; gap: 4px; }
+        .train-dest { font-size: 16px; font-weight: bold; }
+        .train-meta { font-size: 12px; color: var(--text-sub); }
+        .warning-tag { color: #ff9500; font-weight: bold; }
+        
+        .train-right { text-align: right; }
+        .wait-time { font-size: 17px; font-weight: bold; color: #34c759; }
+        .wait-soon { color: #ff3b30; animation: pulse 1.2s infinite; }
+        .eta-dest { font-size: 12px; color: var(--accent); margin-top: 3px; }
+
+        .status-bar { text-align: center; font-size: 12px; color: var(--text-sub); margin-top: 10px; }
+        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <h1>🚇 屯馬綫即時班次看板</h1>
+        <p id="lastUpdate">正在連線港鐵伺服器...</p>
+    </div>
+
+    <div class="selector-card">
+        <div class="route-row">
+            <div class="select-group">
+                <label>起點站</label>
+                <select id="startSelect"></select>
+            </div>
+            <button class="swap-btn" id="swapBtn" title="起終點互換">⇄</button>
+            <div class="select-group">
+                <label>終點站</label>
+                <select id="endSelect"></select>
+            </div>
+        </div>
+        <div class="trip-summary" id="tripSummary">
+            <span>共 -- 個站</span>
+            <span>車程約 -- 分鐘</span>
+            <span>10秒自動更新</span>
+        </div>
+    </div>
+
+    <!-- 去程卡片 -->
+    <div class="direction-card">
+        <div class="dir-header">
+            <span class="dir-title" id="goTitle">去程</span>
+            <span class="dir-badge" id="goDirLabel">--</span>
+        </div>
+        <div class="first-last-bar" id="goFirstLast" style="display:none;"></div>
+        <div id="goList"><div style="color:#888; font-size:14px;">載入中...</div></div>
+    </div>
+
+    <!-- 回程卡片 -->
+    <div class="direction-card">
+        <div class="dir-header">
+            <span class="dir-title" id="backTitle">回程</span>
+            <span class="dir-badge" id="backDirLabel">--</span>
+        </div>
+        <div class="first-last-bar" id="backFirstLast" style="display:none;"></div>
+        <div id="backList"><div style="color:#888; font-size:14px;">載入中...</div></div>
+    </div>
+
+    <div class="status-bar">
+        港鐵規定尾班車開出前 5 分鐘停止入閘
+    </div>
+
+    <script>
+        const API_URL = "https://rt.data.gov.hk/v1/transport/mtr/getSchedule.php";
+        
+        const TML_STATIONS = [
+            { code: "WKS", name: "烏溪沙", mins: 2, firstUp: "05:38", lastUp: "23:54", firstDown: "--", lastDown: "--" },
+            { code: "MOS", name: "馬鞍山", mins: 2, firstUp: "05:40", lastUp: "23:56", firstDown: "06:34", lastDown: "00:58" },
+            { code: "HEO", name: "恆安",   mins: 2, firstUp: "05:43", lastUp: "23:59", firstDown: "06:31", lastDown: "00:55" },
+            { code: "TSH", name: "大水坑", mins: 3, firstUp: "05:45", lastUp: "00:01", firstDown: "06:29", lastDown: "00:53" },
+            { code: "SHM", name: "石門",   mins: 2, firstUp: "05:48", lastUp: "00:04", firstDown: "06:26", lastDown: "00:50" },
+            { code: "CIO", name: "第一城", mins: 2, firstUp: "05:51", lastUp: "00:07", firstDown: "06:23", lastDown: "00:47" },
+            { code: "STW", name: "沙田圍", mins: 2, firstUp: "05:53", lastUp: "00:09", firstDown: "06:21", lastDown: "00:45" },
+            { code: "CKT", name: "車公廟", mins: 3, firstUp: "05:55", lastUp: "00:11", firstDown: "06:19", lastDown: "00:43" },
+            { code: "TAW", name: "大圍",   mins: 3, firstUp: "05:58", lastUp: "00:14", firstDown: "06:16", lastDown: "00:40" },
+            { code: "HIK", name: "顯徑",   mins: 5, firstUp: "06:01", lastUp: "00:17", firstDown: "06:13", lastDown: "00:37" },
+            { code: "DIH", name: "鑽石山", mins: 2, firstUp: "06:06", lastUp: "00:22", firstDown: "06:08", lastDown: "00:32" },
+            { code: "KAT", name: "啟德",   mins: 2, firstUp: "06:08", lastUp: "00:24", firstDown: "06:06", lastDown: "00:30" },
+            { code: "SUW", name: "宋皇臺", mins: 2, firstUp: "06:10", lastUp: "00:26", firstDown: "06:04", lastDown: "00:28" },
+            { code: "TKW", name: "土瓜灣", mins: 2, firstUp: "06:12", lastUp: "00:28", firstDown: "06:02", lastDown: "00:26" },
+            { code: "HOM", name: "何文田", mins: 3, firstUp: "06:14", lastUp: "00:30", firstDown: "06:00", lastDown: "00:24" },
+            { code: "HUH", name: "紅磡",   mins: 3, firstUp: "06:17", lastUp: "00:33", firstDown: "05:57", lastDown: "00:21" },
+            { code: "ETS", name: "尖東",   mins: 2, firstUp: "06:20", lastUp: "00:36", firstDown: "06:20", lastDown: "00:44" },
+            { code: "AUS", name: "柯士甸", mins: 2, firstUp: "06:22", lastUp: "00:38", firstDown: "06:18", lastDown: "00:42" },
+            { code: "NAC", name: "南昌",   mins: 3, firstUp: "06:25", lastUp: "00:41", firstDown: "06:15", lastDown: "00:39" },
+            { code: "MEF", name: "美孚",   mins: 4, firstUp: "06:28", lastUp: "00:44", firstDown: "06:12", lastDown: "00:36" },
+            { code: "TWW", name: "荃灣西", mins: 6, firstUp: "06:32", lastUp: "00:48", firstDown: "06:08", lastDown: "00:32" },
+            { code: "KSR", name: "錦上路", mins: 4, firstUp: "06:38", lastUp: "00:54", firstDown: "06:02", lastDown: "00:26" },
+            { code: "YUL", name: "元朗",   mins: 2, firstUp: "06:42", lastUp: "00:58", firstDown: "05:58", lastDown: "00:22" },
+            { code: "LOP", name: "朗屏",   mins: 3, firstUp: "06:44", lastUp: "01:00", firstDown: "05:56", lastDown: "00:20" },
+            { code: "TIS", name: "天水圍", mins: 3, firstUp: "06:47", lastUp: "01:03", firstDown: "05:53", lastDown: "00:17" },
+            { code: "SIH", name: "兆康",   mins: 3, firstUp: "06:50", lastUp: "01:06", firstDown: "05:50", lastDown: "00:14" },
+            { code: "TUM", name: "屯門",   mins: 0, firstUp: "--", lastUp: "--", firstDown: "05:45", lastDown: "00:08" }
+        ];
+
+        const CODE_TO_INDEX = {};
+        const CODE_TO_NAME = { "SHS": "上水", "LMC": "落馬洲" };
+        TML_STATIONS.forEach((s, i) => {
+            CODE_TO_INDEX[s.code] = i;
+            CODE_TO_NAME[s.code] = s.name;
+        });
+
+        const startSelect = document.getElementById("startSelect");
+        const endSelect = document.getElementById("endSelect");
+        const swapBtn = document.getElementById("swapBtn");
+
+        TML_STATIONS.forEach((sta, idx) => {
+            startSelect.add(new Option(sta.name, idx));
+            endSelect.add(new Option(sta.name, idx));
+        });
+        startSelect.value = 5;  // 第一城
+        endSelect.value = 18;   // 南昌
+
+        function calcTrip(sIdx, eIdx) {
+            const sta = TML_STATIONS[sIdx];
+            if (sIdx < eIdx) {
+                let mins = 0;
+                for (let i = sIdx; i < eIdx; i++) mins += TML_STATIONS[i].mins;
+                return { dir: "UP", label: "往屯門方向", stops: eIdx - sIdx, mins, first: sta.firstUp, last: sta.lastUp };
+            } else {
+                let mins = 0;
+                for (let i = eIdx; i < sIdx; i++) mins += TML_STATIONS[i].mins;
+                return { dir: "DOWN", label: "往烏溪沙方向", stops: sIdx - eIdx, mins, first: sta.firstDown, last: sta.lastDown };
+            }
+        }
+
+        async function fetchTrains(staCode, dirKey, travelMins, destIdx, containerId) {
+            const container = document.getElementById(containerId);
+            try {
+                const res = await fetch(`${API_URL}?line=TML&sta=${staCode}&lang=TC`);
+                const data = await res.json();
+
+                if (data.status !== 1) {
+                    container.innerHTML = `<div style="color:#ff9500;">${data.message || '暫無資料'}</div>`;
+                    return;
+                }
+
+                const trains = data.data[`TML-${staCode}`][dirKey] || [];
+                if (trains.length === 0) {
+                    container.innerHTML = `<div style="color:#888;">目前沒有即將開出的班次（可能已過尾班車時間）</div>`;
+                    return;
+                }
+
+                container.innerHTML = trains.map(t => {
+                    const destName = CODE_TO_NAME[t.dest] || t.dest;
+                    const ttnt = t.ttnt;
+                    const isSoon = ttnt === "0";
+                    const waitText = isSoon ? "即將到達 🚆" : `${ttnt} 分鐘`;
+                    
+                    let warnHtml = "";
+                    if (CODE_TO_INDEX[t.dest] !== undefined) {
+                        const tEndIdx = CODE_TO_INDEX[t.dest];
+                        if ((dirKey === "UP" && tEndIdx < destIdx) || (dirKey === "DOWN" && tEndIdx > destIdx)) {
+                            warnHtml = `<span class="warning-tag"> ⚠️ 需於${destName}轉車</span>`;
+                        }
+                    }
+
+                    let etaText = "";
+                    let timeDisplay = "";
+                    if (t.time && t.time.includes(" ")) {
+                        timeDisplay = t.time.split(" ")[1];
+                        const depDate = new Date(t.time.replace(" ", "T"));
+                        if (!isNaN(depDate)) {
+                            const arrDate = new Date(depDate.getTime() + travelMins * 60000);
+                            const hh = String(arrDate.getHours()).padStart(2, '0');
+                            const mm = String(arrDate.getMinutes()).padStart(2, '0');
+                            etaText = `預計 ${hh}:${mm} 抵達`;
+                        }
+                    }
+
+                    return `
+                        <div class="train-item">
+                            <div class="train-left">
+                                <div class="train-dest">往 ${destName} ${warnHtml}</div>
+                                <div class="train-meta">${t.plat} 號月台 ｜ 開出 ${timeDisplay}</div>
+                            </div>
+                            <div class="train-right">
+                                <div class="wait-time ${isSoon ? 'wait-soon' : ''}">${waitText}</div>
+                                <div class="eta-dest">${etaText}</div>
+                            </div>
+                        </div>
+                    `;
+                }).join("");
+            } catch (err) {
+                container.innerHTML = `<div style="color:#ff3b30;">連線失敗，將於 10 秒後重試</div>`;
+            }
+        }
+
+        async function updateAll() {
+            const sIdx = parseInt(startSelect.value);
+            const eIdx = parseInt(endSelect.value);
+
+            if (sIdx === eIdx) {
+                document.getElementById("tripSummary").innerHTML = `<span style="color:#ff3b30;">起點站與終點站不能相同</span>`;
+                return;
+            }
+
+            const startSta = TML_STATIONS[sIdx];
+            const endSta = TML_STATIONS[eIdx];
+            const goInfo = calcTrip(sIdx, eIdx);
+            const backInfo = calcTrip(eIdx, sIdx);
+
+            document.getElementById("tripSummary").innerHTML = `
+                <span>共 ${goInfo.stops} 個站</span>
+                <span>車程約 ${goInfo.mins} 分鐘</span>
+                <span>每 10 秒更新</span>
+            `;
+
+            document.getElementById("goTitle").innerText = `${startSta.name} ➔ ${endSta.name}`;
+            document.getElementById("goDirLabel").innerText = goInfo.label;
+            const goFL = document.getElementById("goFirstLast");
+            goFL.style.display = "flex";
+            goFL.innerHTML = `<span>🌅 頭班車：${goInfo.first}</span><span>🌃 尾班車：${goInfo.last}</span>`;
+
+            document.getElementById("backTitle").innerText = `${endSta.name} ➔ ${startSta.name}`;
+            document.getElementById("backDirLabel").innerText = backInfo.label;
+            const backFL = document.getElementById("backFirstLast");
+            backFL.style.display = "flex";
+            backFL.innerHTML = `<span>🌅 頭班車：${backInfo.first}</span><span>🌃 尾班車：${backInfo.last}</span>`;
+
+            await Promise.all([
+                fetchTrains(startSta.code, goInfo.dir, goInfo.mins, eIdx, "goList"),
+                fetchTrains(endSta.code, backInfo.dir, backInfo.mins, sIdx, "backList")
+            ]);
+
+            const now = new Date();
+            document.getElementById("lastUpdate").innerText = `最後更新：${now.toTimeString().split(" ")[0]}`;
+        }
+
+        startSelect.addEventListener("change", updateAll);
+        endSelect.addEventListener("change", updateAll);
+        swapBtn.addEventListener("click", () => {
+            const temp = startSelect.value;
+            startSelect.value = endSelect.value;
+            endSelect.value = temp;
+            updateAll();
+        });
+
+        updateAll();
+        setInterval(updateAll, 10000);
+    </script>
+</body>
+</html>
