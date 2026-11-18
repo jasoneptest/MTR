@@ -179,7 +179,7 @@
 
     <div class="header">
         <div class="header-left">
-            <h1 id="uiTitle">🚇 即時港鐵全線跨線轉乘</h1>
+            <h1 id="uiTitle">🚇 港鐵即時跨線轉乘</h1>
             <p id="lastUpdate">正在連線港鐵伺服器...</p>
         </div>
         <div class="header-actions">
@@ -254,7 +254,7 @@
 
         const I18N = {
             TC: {
-                title: "🚇 即時港鐵全線跨線轉乘",
+                title: "🚇 港鐵即時跨線轉乘",
                 langBtn: "Eng",
                 fontLabels: ["標準", "大", "特大"],
                 connecting: "正在連線港鐵伺服器...",
@@ -1140,84 +1140,93 @@
         }
 
         let currentRequestId = 0;
+        let lastRenderedKey = "";
 
-        async function updateDashboard() {
-            const savedScrollY = window.scrollY;
+        async function updateDashboard(isAutoRefresh = false) {
             const reqId = ++currentRequestId;
             const t = I18N[currentLang];
             const startNode = `${startLineSel.value}:${startStaSel.value}`;
             const endNode = `${endLineSel.value}:${endStaSel.value}`;
+            const renderKey = `${currentLang}|${startNode}|${endNode}`;
             const container = document.getElementById("itineraryContainer");
 
-            renderPresets();
+            if (!isAutoRefresh) {
+                renderPresets();
+            }
 
             if (startNode === endNode) {
+                lastRenderedKey = renderKey;
                 document.getElementById("summaryBar").innerHTML = `<span style="color:#ff3b30;width:100%;">${t.sameStation}</span>`;
                 container.innerHTML = "";
                 return;
             }
 
             const segments = findShortestPath(startNode, endNode);
-            let totalStops = 0;
-            let totalMins = 0;
-            let transferCount = 0;
+            const canSilentUpdate = isAutoRefresh && (lastRenderedKey === renderKey) && container.children.length > 0;
 
-            segments.forEach(s => {
-                if (s.type === "RIDE") {
-                    totalStops += s.stops;
-                    totalMins += s.mins;
-                } else {
-                    totalMins += s.walkMins;
-                    transferCount += 1;
-                }
-            });
+            if (!canSilentUpdate) {
+                lastRenderedKey = renderKey;
+                let totalStops = 0;
+                let totalMins = 0;
+                let transferCount = 0;
 
-            document.getElementById("summaryBar").innerHTML = `
-                <span>${t.totalPrefix}${totalStops} ${t.stopsUnit}</span>
-                <span>${transferCount === 0 ? t.directText : t.transferText(transferCount)}</span>
-                <span>${t.estTime(totalMins)}</span>
-            `;
+                segments.forEach(s => {
+                    if (s.type === "RIDE") {
+                        totalStops += s.stops;
+                        totalMins += s.mins;
+                    } else {
+                        totalMins += s.walkMins;
+                        transferCount += 1;
+                    }
+                });
 
-            container.innerHTML = segments.map((seg, idx) => {
-                if (seg.type === "TRANSFER") {
-                    const staDisplay = seg.fromSta === seg.toSta ? stName(seg.fromSta) : `${stName(seg.fromSta)} ➔ ${stName(seg.toSta)}`;
-                    return `
-                        <div class="transfer-divider">
-                            <div class="transfer-pill">${t.transferWalk(staDisplay, lnName(seg.toLine), seg.walkMins)}</div>
-                        </div>
-                    `;
-                } else {
-                    const lineInfo = LINES[seg.line];
-                    const termName = getTerminalLabel(seg.line, seg.dir);
-                    const staFirstTime = getStationFirstTrain(seg.line, seg.dir, seg.fromSta);
-                    const staLastTime = getStationLastTrain(seg.line, seg.dir, seg.fromSta);
-                    const termShort = getTerminalLabel(seg.line, seg.dir);
-                    const firstDisplay = `${staFirstTime} (${t.towards}${termShort})`;
-                    const lastDisplay = (seg.line === "EAL" && seg.dir === "UP") || (seg.line === "TKL" && seg.dir === "UP")
-                        ? staLastTime
-                        : `${staLastTime} (${t.towards}${termShort})`;
+                document.getElementById("summaryBar").innerHTML = `
+                    <span>${t.totalPrefix}${totalStops} ${t.stopsUnit}</span>
+                    <span>${transferCount === 0 ? t.directText : t.transferText(transferCount)}</span>
+                    <span>${t.estTime(totalMins)}</span>
+                `;
 
-                    return `
-                        <div class="card">
-                            <div class="seg-header">
-                                <div class="seg-title">${stName(seg.fromSta)} ➔ ${stName(seg.toSta)}</div>
-                                <div class="line-pill" style="background:${lineInfo.color};">${lnName(seg.line)}・${t.towards}${termName}</div>
+                container.innerHTML = segments.map((seg, idx) => {
+                    if (seg.type === "TRANSFER") {
+                        const staDisplay = seg.fromSta === seg.toSta ? stName(seg.fromSta) : `${stName(seg.fromSta)} ➔ ${stName(seg.toSta)}`;
+                        return `
+                            <div class="transfer-divider">
+                                <div class="transfer-pill">${t.transferWalk(staDisplay, lnName(seg.toLine), seg.walkMins)}</div>
                             </div>
-                            <div class="first-last-box">
-                                <div class="fl-item">
-                                    <div class="fl-label">${t.firstTrain(stName(seg.fromSta))}</div>
-                                    <div class="fl-val first">${firstDisplay}</div>
+                        `;
+                    } else {
+                        const lineInfo = LINES[seg.line];
+                        const termName = getTerminalLabel(seg.line, seg.dir);
+                        const staFirstTime = getStationFirstTrain(seg.line, seg.dir, seg.fromSta);
+                        const staLastTime = getStationLastTrain(seg.line, seg.dir, seg.fromSta);
+                        const termShort = getTerminalLabel(seg.line, seg.dir);
+                        const firstDisplay = `${staFirstTime} (${t.towards}${termShort})`;
+                        const lastDisplay = (seg.line === "EAL" && seg.dir === "UP") || (seg.line === "TKL" && seg.dir === "UP")
+                            ? staLastTime
+                            : `${staLastTime} (${t.towards}${termShort})`;
+
+                        return `
+                            <div class="card">
+                                <div class="seg-header">
+                                    <div class="seg-title">${stName(seg.fromSta)} ➔ ${stName(seg.toSta)}</div>
+                                    <div class="line-pill" style="background:${lineInfo.color};">${lnName(seg.line)}・${t.towards}${termName}</div>
                                 </div>
-                                <div class="fl-item" style="text-align:right;">
-                                    <div class="fl-label">${t.lastTrain(stName(seg.fromSta))}</div>
-                                    <div class="fl-val last">${lastDisplay}</div>
+                                <div class="first-last-box">
+                                    <div class="fl-item">
+                                        <div class="fl-label">${t.firstTrain(stName(seg.fromSta))}</div>
+                                        <div class="fl-val first">${firstDisplay}</div>
+                                    </div>
+                                    <div class="fl-item" style="text-align:right;">
+                                        <div class="fl-label">${t.lastTrain(stName(seg.fromSta))}</div>
+                                        <div class="fl-val last">${lastDisplay}</div>
+                                    </div>
                                 </div>
+                                <div id="seg-body-${idx}"><div style="color:#888;font-size:calc(12px * var(--font-scale, 1));">${t.loading}</div></div>
                             </div>
-                            <div id="seg-body-${idx}"><div style="color:#888;font-size:calc(12px * var(--font-scale, 1));">${t.loading}</div></div>
-                        </div>
-                    `;
-                }
-            }).join("");
+                        `;
+                    }
+                }).join("");
+            }
 
             let rollingArrivalTime = null;
             for (let i = 0; i < segments.length; i++) {
@@ -1231,7 +1240,9 @@
                     const result = await fetchSegmentTrains(seg, rollingArrivalTime);
                     if (reqId !== currentRequestId) return;
                     const bodyEl = document.getElementById(`seg-body-${i}`);
-                    if (bodyEl) bodyEl.innerHTML = result.html;
+                    if (bodyEl && bodyEl.innerHTML !== result.html) {
+                        bodyEl.innerHTML = result.html;
+                    }
                     rollingArrivalTime = result.arrivalAtSegEnd;
                 }
             }
@@ -1242,7 +1253,6 @@
                 const mm = String(now.getMinutes()).padStart(2, '0');
                 const ss = String(now.getSeconds()).padStart(2, '0');
                 document.getElementById("lastUpdate").textContent = `${t.lastUpdate}${hh}:${mm}:${ss}`;
-                window.scrollTo({ top: savedScrollY, behavior: 'instant' });
             }
         }
 
@@ -1337,8 +1347,8 @@
         endLineSel.value = "TML";
         populateStations(endLineSel, endStaSel, "NAC");
 
-        updateDashboard();
-        setInterval(updateDashboard, 10000);
+        updateDashboard(false);
+        setInterval(() => updateDashboard(true), 10000);
     </script>
 </body>
 </html>
