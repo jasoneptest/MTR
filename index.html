@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <title>MTR Live & Transfer</title>
+    <title>港鐵全線跨線轉乘看板 | MTR Live & Transfer</title>
     <style>
         :root {
             --bg-color: #111214;
@@ -24,9 +24,9 @@
         html, body { width: 100%; max-width: 100%; overflow-x: hidden; margin: 0; padding: 0; background-color: var(--bg-color); color: var(--text-main); }
         body { padding: 12px; padding-bottom: 45px; }
 
-        .header { background: linear-gradient(135deg, #005596, #003b6f); padding: 14px 16px; border-radius: 14px; display: flex; justify-content: space-between; align-items: center; gap: 10px; margin-bottom: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.4); }
+        .header { background: linear-gradient(135deg, #005596, #003b6f); padding: 14px 16px; border-radius: 14px; display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 10px; margin-bottom: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.4); }
         .header-left { flex: 1; min-width: 0; }
-        .header h1 { margin: 0; font-size: calc(17px * var(--font-scale, 1)); letter-spacing: 0.3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .header h1 { margin: 0; font-size: calc(17px * var(--font-scale, 1)); letter-spacing: 0.3px; white-space: normal; word-break: break-word; line-height: 1.25; }
         .header p { margin: 4px 0 0; font-size: calc(11px * var(--font-scale, 1)); color: #d0e4f7; }
         .lang-btn { background: rgba(255,255,255,0.18); color: white; border: 1px solid rgba(255,255,255,0.35); padding: 7px 12px; border-radius: 20px; font-size: calc(12px * var(--font-scale, 1)); font-weight: bold; cursor: pointer; white-space: nowrap; flex-shrink: 0; }
         .lang-btn:active { background: rgba(255,255,255,0.3); }
@@ -141,7 +141,7 @@
 
     <div class="header">
         <div class="header-left">
-            <h1 id="uiTitle">🚇 即時港鐵全線跨線轉乘</h1>
+            <h1 id="uiTitle">🚇 港鐵全線跨線轉乘看板</h1>
             <p id="lastUpdate">正在連線港鐵伺服器...</p>
         </div>
         <div class="header-actions">
@@ -216,8 +216,8 @@
 
         const I18N = {
             TC: {
-                title: "🚇 即時港鐵全線跨線轉乘",
-                langBtn: "English",
+                title: "🚇 港鐵全線跨線轉乘看板",
+                langBtn: "Eng",
                 fontLabels: ["標準", "大", "特大"],
                 connecting: "正在連線港鐵伺服器...",
                 lastUpdate: "最後更新：",
@@ -255,7 +255,7 @@
             },
             EN: {
                 title: "🚇 MTR Live & Transfer",
-                langBtn: "繁體中文",
+                langBtn: "中",
                 fontLabels: ["A", "A+", "A++"],
                 connecting: "Connecting to MTR API...",
                 lastUpdate: "Last update: ",
