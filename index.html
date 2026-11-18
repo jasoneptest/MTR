@@ -5,966 +5,1252 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <title>MTR Live & Transfer</title>
+    <title>港鐵全線跨線轉乘看板 | MTR Live & Transfer</title>
     <style>
         :root {
-            --bg-color: #121212;
-            --card-bg: #1e1e1e;
-            --input-bg: #2c2c2e;
-            --border-color: #3a3a3c;
+            --bg-color: #111214;
+            --card-bg: #1c1d21;
+            --input-bg: #282a30;
+            --border-color: #363942;
             --text-main: #ffffff;
-            --text-sub: #aaaaaa;
+            --text-sub: #a0a5b1;
             --accent: #ffcc00;
+            --green: #34c759;
+            --red: #ff3b30;
+            --orange: #ff9500;
         }
-        * { box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", Arial, sans-serif; }
-        body { background-color: var(--bg-color); color: var(--text-main); margin: 0; padding: 14px; padding-bottom: 50px; }
-        
-        .header { background: linear-gradient(135deg, #005596, #003366); padding: 14px 16px; border-radius: 14px; margin-bottom: 14px; box-shadow: 0 4px 12px rgba(0,0,0,0.4); display: flex; justify-content: space-between; align-items: center; }
-        .header-left { text-align: left; }
-        .header h1 { margin: 0; font-size: 18px; letter-spacing: 0.5px; }
-        .header p { margin: 4px 0 0; font-size: 12px; color: #cce4ff; }
-        .lang-btn { background: rgba(255,255,255,0.2); color: white; border: 1px solid rgba(255,255,255,0.4); padding: 6px 12px; border-radius: 20px; font-size: 13px; font-weight: bold; cursor: pointer; white-space: nowrap; }
-        .lang-btn:active { background: rgba(255,255,255,0.35); }
+        * { box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", sans-serif; }
+        html, body { width: 100%; max-width: 100%; overflow-x: hidden; margin: 0; padding: 0; background-color: var(--bg-color); color: var(--text-main); }
+        body { padding: 12px; padding-bottom: 45px; }
 
-        /* 預設常用路線區塊 */
-        .presets-card { background: var(--card-bg); padding: 12px 14px; border-radius: 14px; margin-bottom: 14px; border: 1px solid #2c2c2e; }
-        .presets-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
-        .presets-title { font-size: 13px; font-weight: bold; color: var(--accent); }
-        .save-preset-btn { background: #34c759; color: #000; border: none; border-radius: 8px; padding: 5px 10px; font-size: 12px; font-weight: bold; cursor: pointer; }
-        .save-preset-btn:active { opacity: 0.8; }
-        
-        .presets-list { display: flex; flex-wrap: wrap; gap: 8px; }
-        .preset-chip { display: inline-flex; align-items: center; background: var(--input-bg); border: 1px solid var(--border-color); border-radius: 20px; padding: 6px 12px; font-size: 13px; color: white; cursor: pointer; transition: background 0.15s; }
-        .preset-chip:active, .preset-chip.active { background: #005596; border-color: #5eb6e4; }
-        .preset-del { margin-left: 8px; color: #ff453a; font-weight: bold; font-size: 14px; padding: 0 2px; }
+        .header { background: linear-gradient(135deg, #005596, #003b6f); padding: 14px 16px; border-radius: 14px; display: flex; justify-content: space-between; align-items: center; gap: 10px; margin-bottom: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.4); }
+        .header-left { flex: 1; min-width: 0; }
+        .header h1 { margin: 0; font-size: 17px; letter-spacing: 0.3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .header p { margin: 4px 0 0; font-size: 11px; color: #d0e4f7; }
+        .lang-btn { background: rgba(255,255,255,0.18); color: white; border: 1px solid rgba(255,255,255,0.35); padding: 7px 12px; border-radius: 20px; font-size: 12px; font-weight: bold; cursor: pointer; white-space: nowrap; flex-shrink: 0; }
+        .lang-btn:active { background: rgba(255,255,255,0.3); }
 
-        .selector-card { background: var(--card-bg); padding: 14px; border-radius: 14px; margin-bottom: 14px; border: 1px solid #2c2c2e; }
-        .station-box { margin-bottom: 12px; }
-        .station-label { font-size: 12px; color: var(--text-sub); margin-bottom: 6px; display: flex; align-items: center; gap: 6px; }
-        .dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; }
-        .select-pair { display: flex; gap: 8px; }
-        select { flex: 1; padding: 10px 8px; font-size: 15px; font-weight: bold; background: var(--input-bg); color: white; border: 1px solid var(--border-color); border-radius: 10px; }
-        
-        .swap-row { display: flex; justify-content: center; margin: 4px 0 12px; }
-        .swap-btn { background: var(--input-bg); color: var(--accent); border: 1px solid var(--border-color); border-radius: 20px; padding: 6px 18px; font-size: 13px; font-weight: bold; cursor: pointer; display: flex; align-items: center; gap: 6px; }
-        .swap-btn:active { background: #3a3a3c; }
+        .card { background: var(--card-bg); border-radius: 14px; padding: 14px; margin-bottom: 12px; border: 1px solid #262830; width: 100%; }
 
-        .trip-summary { margin-top: 10px; padding-top: 10px; border-top: 1px solid #2c2c2e; display: flex; justify-content: space-between; font-size: 13px; color: var(--accent); font-weight: 600; }
+        /* Presets */
+        .presets-header { display: flex; justify-content: space-between; align-items: center; gap: 8px; margin-bottom: 10px; }
+        .presets-title { font-size: 12px; font-weight: bold; color: var(--accent); flex: 1; min-width: 0; }
+        .save-btn { background: var(--green); color: #000; border: none; border-radius: 14px; padding: 5px 11px; font-size: 11px; font-weight: bold; cursor: pointer; white-space: nowrap; flex-shrink: 0; }
+        .save-btn:active { opacity: 0.8; }
+        .preset-list { display: flex; flex-wrap: wrap; gap: 7px; }
+        .preset-chip { display: inline-flex; align-items: center; background: var(--input-bg); border: 1px solid var(--border-color); border-radius: 16px; padding: 5px 10px; font-size: 12px; color: var(--text-main); cursor: pointer; max-width: 100%; }
+        .preset-chip.active { border-color: var(--accent); background: rgba(255, 204, 0, 0.15); color: var(--accent); font-weight: bold; }
+        .preset-text { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .preset-del { margin-left: 7px; color: #ff6b6b; font-weight: bold; font-size: 14px; line-height: 1; padding: 0 2px; flex-shrink: 0; }
 
-        .leg-card { background: var(--card-bg); border-radius: 14px; padding: 14px; margin-bottom: 12px; border-left: 6px solid #888; }
-        .leg-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #2c2c2e; padding-bottom: 8px; margin-bottom: 8px; }
-        .leg-route { font-size: 15px; font-weight: bold; }
-        .leg-badge { font-size: 11px; padding: 3px 8px; border-radius: 6px; color: #fff; font-weight: bold; text-shadow: 0 1px 2px rgba(0,0,0,0.5); }
+        /* Selectors - Fixed responsive layout so English text never overflows */
+        .station-box { margin-bottom: 10px; width: 100%; }
+        .station-box:last-of-type { margin-bottom: 0; }
+        .box-label { font-size: 12px; color: var(--text-sub); margin-bottom: 6px; display: flex; align-items: center; gap: 6px; font-weight: 600; }
+        .dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; flex-shrink: 0; }
+        .select-row { display: flex; gap: 8px; width: 100%; }
+        .select-wrap { position: relative; min-width: 0; }
+        .select-wrap.line-col { flex: 1.15; }
+        .select-wrap.sta-col { flex: 1; }
+        select {
+            width: 100%;
+            min-width: 0;
+            max-width: 100%;
+            padding: 10px 26px 10px 10px;
+            font-size: 13px;
+            font-weight: 600;
+            background: var(--input-bg);
+            color: white;
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            appearance: none;
+            -webkit-appearance: none;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        .select-wrap::after {
+            content: "▾";
+            position: absolute;
+            right: 9px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-sub);
+            font-size: 12px;
+            pointer-events: none;
+        }
 
-        .train-item { display: flex; justify-content: space-between; align-items: center; padding: 9px 0; border-bottom: 1px solid #2a2a2c; }
-        .train-item:last-child { border-bottom: none; padding-bottom: 0; }
-        .train-left { display: flex; flex-direction: column; gap: 3px; }
-        .train-dest { font-size: 15px; font-weight: bold; display: flex; align-items: center; flex-wrap: wrap; gap: 6px; }
-        .train-meta { font-size: 12px; color: var(--text-sub); }
-        
-        .tag-catch { background: #34c759; color: #000; font-size: 11px; padding: 2px 6px; border-radius: 4px; font-weight: bold; }
-        .tag-warn { background: #ff9500; color: #000; font-size: 11px; padding: 2px 6px; border-radius: 4px; font-weight: bold; }
+        .swap-row { display: flex; justify-content: center; margin: 10px 0; }
+        .swap-btn { background: var(--input-bg); color: var(--accent); border: 1px solid var(--border-color); border-radius: 20px; padding: 6px 16px; font-size: 12px; font-weight: bold; cursor: pointer; display: flex; align-items: center; gap: 6px; }
+        .swap-btn:active { background: #363942; }
 
-        .train-right { text-align: right; }
-        .wait-time { font-size: 16px; font-weight: bold; color: #34c759; }
-        .wait-soon { color: #ff3b30; animation: pulse 1.2s infinite; }
-        .eta-dest { font-size: 12px; color: var(--accent); margin-top: 2px; }
+        .summary-bar { display: flex; justify-content: space-between; align-items: center; background: #16171a; padding: 10px 12px; border-radius: 10px; margin-top: 12px; font-size: 12px; font-weight: bold; color: var(--accent); gap: 6px; text-align: center; }
 
-        .transfer-banner { background: #262629; border: 1px dashed #555; border-radius: 10px; padding: 10px 14px; margin-bottom: 12px; display: flex; align-items: center; gap: 10px; font-size: 13px; color: #e5e5ea; }
-        .status-bar { text-align: center; font-size: 11px; color: var(--text-sub); margin-top: 14px; }
-        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
+        /* First & Last Train Banner inside Segment */
+        .first-last-box {
+            background: #15161a;
+            border: 1px solid #2a2d36;
+            border-radius: 10px;
+            padding: 9px 11px;
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+            gap: 8px;
+            font-size: 11px;
+        }
+        .fl-item { flex: 1; min-width: 0; }
+        .fl-label { color: var(--text-sub); margin-bottom: 2px; font-size: 10px; }
+        .fl-val { color: #e5e7eb; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .fl-val.first { color: #60a5fa; }
+        .fl-val.last { color: #f59e0b; }
+
+        /* Segment Card */
+        .seg-header { display: flex; justify-content: space-between; align-items: flex-start; gap: 8px; padding-bottom: 10px; margin-bottom: 10px; border-bottom: 1px solid #2b2d35; }
+        .seg-title { font-size: 15px; font-weight: bold; flex: 1; min-width: 0; word-break: break-word; }
+        .line-pill { padding: 4px 9px; border-radius: 8px; font-size: 11px; font-weight: bold; color: white; text-shadow: 0 1px 2px rgba(0,0,0,0.5); white-space: nowrap; flex-shrink: 0; }
+
+        .train-row { display: flex; justify-content: space-between; align-items: center; gap: 8px; padding: 9px 0; border-bottom: 1px solid #25272e; }
+        .train-row:last-child { border-bottom: none; padding-bottom: 0; }
+        .train-left { flex: 1; min-width: 0; }
+        .train-dest { font-size: 14px; font-weight: bold; display: flex; align-items: center; flex-wrap: wrap; gap: 5px; }
+        .train-sub { font-size: 11px; color: var(--text-sub); margin-top: 3px; }
+        .train-right { text-align: right; flex-shrink: 0; }
+        .ttnt-val { font-size: 15px; font-weight: bold; color: var(--green); }
+        .ttnt-soon { color: var(--red); animation: blink 1.2s infinite; }
+        .eta-val { font-size: 11px; color: var(--accent); margin-top: 2px; }
+
+        .badge-catch { background: rgba(52, 199, 89, 0.2); color: #34c759; border: 1px solid #34c759; font-size: 10px; padding: 1px 5px; border-radius: 5px; }
+        .badge-warn { background: rgba(255, 149, 0, 0.2); color: #ff9500; border: 1px solid #ff9500; font-size: 10px; padding: 1px 5px; border-radius: 5px; }
+
+        .transfer-divider { display: flex; align-items: center; justify-content: center; margin: 4px 0 12px; }
+        .transfer-pill { background: #282a30; border: 1px dashed var(--accent); color: var(--accent); padding: 7px 14px; border-radius: 20px; font-size: 12px; font-weight: bold; text-align: center; }
+
+        .footer-note { text-align: center; font-size: 11px; color: var(--text-sub); margin-top: 12px; }
+        @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.45; } }
     </style>
 </head>
 <body>
 
     <div class="header">
         <div class="header-left">
-            <h1 id="uiTitle">🚇 港鐵全線跨線轉乘即時</h1>
+            <h1 id="uiTitle">🚇 港鐵全線跨線轉乘看板</h1>
             <p id="lastUpdate">正在連線港鐵伺服器...</p>
         </div>
         <button class="lang-btn" id="langBtn">EN / 繁中</button>
     </div>
 
-    <!-- 預設常用站到站路線 -->
-    <div class="presets-card">
+    <!-- Preset Routes Card -->
+    <div class="card">
         <div class="presets-header">
-            <span class="presets-title" id="uiPresetsTitle">⭐ 預設常用路線 (點擊一鍵查詢)</span>
-            <button class="save-preset-btn" id="savePresetBtn">+ 儲存目前路線</button>
+            <span class="presets-title" id="uiPresetTitle">⭐ 預設常用路線 (點擊一鍵查詢)</span>
+            <button class="save-btn" id="savePresetBtn">+ 儲存目前路線</button>
         </div>
-        <div class="presets-list" id="presetsList"></div>
+        <div class="preset-list" id="presetList"></div>
     </div>
 
-    <div class="selector-card">
-        <!-- 起點 -->
+    <!-- Route Selector Card -->
+    <div class="card">
         <div class="station-box">
-            <div class="station-label"><span class="dot" style="background:#34c759;"></span> <span id="uiStartLabel">起點站 (選擇路線及車站)</span></div>
-            <div class="select-pair">
-                <select id="startLine"></select>
-                <select id="startSta"></select>
+            <div class="box-label"><span class="dot" style="background:#34c759;"></span> <span id="uiOriginLabel">起點站 (選擇路線及車站)</span></div>
+            <div class="select-row">
+                <div class="select-wrap line-col">
+                    <select id="startLine"></select>
+                </div>
+                <div class="select-wrap sta-col">
+                    <select id="startSta"></select>
+                </div>
             </div>
         </div>
 
-        <!-- 互換按鈕 -->
         <div class="swap-row">
-            <button class="swap-btn" id="swapBtn">⇅ <span id="uiSwapBtn">起終點互換 (回程查詢)</span></button>
+            <button class="swap-btn" id="swapBtn">⇅ <span id="uiSwapText">起終點互換 (回程查詢)</span></button>
         </div>
 
-        <!-- 終點 -->
-        <div class="station-box" style="margin-bottom: 4px;">
-            <div class="station-label"><span class="dot" style="background:#ff3b30;"></span> <span id="uiEndLabel">終點站 (選擇路線及車站)</span></div>
-            <div class="select-pair">
-                <select id="endLine"></select>
-                <select id="endSta"></select>
+        <div class="station-box">
+            <div class="box-label"><span class="dot" style="background:#ff3b30;"></span> <span id="uiDestLabel">終點站 (選擇路線及車站)</span></div>
+            <div class="select-row">
+                <div class="select-wrap line-col">
+                    <select id="endLine"></select>
+                </div>
+                <div class="select-wrap sta-col">
+                    <select id="endSta"></select>
+                </div>
             </div>
         </div>
 
-        <div class="trip-summary" id="tripSummary">
-            <span>--</span><span>--</span><span>--</span>
+        <div class="summary-bar" id="summaryBar">
+            <span>--</span>
+            <span>--</span>
+            <span>--</span>
         </div>
     </div>
 
-    <div id="journeyContainer"></div>
+    <div id="itineraryContainer"></div>
 
-    <div class="status-bar" id="uiFooter">
-        每 10 秒自動刷新 ｜ 港鐵規定尾班車開出前 5 分鐘停止入閘
-    </div>
+    <div class="footer-note" id="uiFooterNote">每 10 秒自動刷新 ｜ 港鐵規定尾班車開出前 5 分鐘停止入閘</div>
 
     <script>
         const API_URL = "https://rt.data.gov.hk/v1/transport/mtr/getSchedule.php";
         let currentLang = "TC"; // "TC" or "EN"
+        try {
+            const savedLang = localStorage.getItem("mtr_preferred_lang");
+            if (savedLang === "TC" || savedLang === "EN") {
+                currentLang = savedLang;
+            }
+        } catch (e) {}
 
         const I18N = {
             TC: {
-                title: "🚇 港鐵全線跨線轉乘即時",
+                title: "🚇 港鐵全線跨線轉乘看板",
+                langBtn: "English",
                 connecting: "正在連線港鐵伺服器...",
                 lastUpdate: "最後更新：",
-                presetsTitle: "⭐ 預設常用路線 (點擊一鍵查詢)",
+                presetTitle: "⭐ 預設常用路線 (點擊一鍵查詢)",
                 savePreset: "+ 儲存目前路線",
-                presetSavedAlert: "已加入預設常用路線！",
-                presetExistsAlert: "此路線已在預設清單中！",
-                startLabel: "起點站 (選擇路線及車站)",
-                endLabel: "終點站 (選擇路線及車站)",
-                swapBtn: "起終點互換 (回程查詢)",
-                footer: "每 10 秒自動刷新 ｜ 港鐵規定尾班車開出前 5 分鐘停止入閘",
+                savedMsg: "已儲存此預設路線！",
+                existMsg: "此路線已在預設清單中。",
+                originLabel: "起點站 (選擇路線及車站)",
+                destLabel: "終點站 (選擇路線及車站)",
+                swapText: "起終點互換 (回程查詢)",
                 sameStation: "起點站與終點站相同",
-                noRoute: "無法找到連接路線",
-                stopsCount: (n) => `共 ${n} 個站`,
-                directTrip: "同線直達 (0 次轉乘)",
-                transferCount: (n) => `轉乘 ${n} 次`,
-                totalMins: (m) => `總車程約 ${m} 分鐘`,
-                dirTo: (dest) => `往${dest}方向`,
-                branchTransfer: (sta) => `於 ${sta} 轉乘另一支線列車 (約 2 分鐘)`,
-                lineTransfer: (sta, line, mins) => `於 <strong>${sta}</strong> 轉乘 <strong>${line}</strong>（步行轉車約 ${mins} 分鐘）`,
-                loading: "載入即時班次中...",
-                noTrains: "目前沒有即將開出的班次（可能已過尾班車）",
-                connErr: "連線失敗，將於 10 秒後重試",
-                toDest: (dest) => `往 ${dest}`,
-                suggestedCatch: "建議接駁班次",
-                shortTurnWarn: (dest) => `⚠️ 需於${dest}轉車`,
-                platTime: (plat, time) => `${plat} 號月台 ｜ 開出 ${time}`,
+                stopsUnit: "個站",
+                totalPrefix: "共 ",
+                directText: "直達 (0 次轉乘)",
+                transferText: (n) => `轉乘 ${n} 次`,
+                estTime: (m) => `總車程約 ${m} 分鐘`,
+                towards: "往",
+                toDest: "往",
+                plat: "號月台",
+                dep: "開出",
+                arr: "抵達",
                 arriving: "即將到達 🚆",
-                minsWait: (m) => `${m} 分鐘`,
-                etaAt: (time, sta) => `預計 ${time} 到${sta}`
+                mins: "分鐘",
+                catchThis: "建議乘搭此班",
+                shortTurn: (s) => `⚠️ 需於${s}轉車`,
+                transferWalk: (sta, line, mins) => `🚶 於【${sta}】轉乘 ${line}（步行約 ${mins} 分鐘）`,
+                loading: "載入即時班次中...",
+                noTrains: "目前沒有即將開出的班次（已過尾班車）",
+                apiErr: "暫無即時資料",
+                sysUnavail: "系統暫時未能提供資料",
+                connErr: "連線異常，10秒後自動重試",
+                firstTrain: (sta) => `🌅 【${sta}】頭班車開出`,
+                lastTrain: (sta) => `🌃 【${sta}】尾班車開出`,
+                footerNote: "每 10 秒自動刷新 ｜ 港鐵規定尾班車開出前 5 分鐘停止入閘"
             },
             EN: {
                 title: "🚇 MTR Live & Transfer",
-                connecting: "Connecting to MTR server...",
+                langBtn: "繁體中文",
+                connecting: "Connecting to MTR API...",
                 lastUpdate: "Last update: ",
-                presetsTitle: "⭐ Preset Routes (Tap to view)",
+                presetTitle: "⭐ Preset Routes (Tap to view)",
                 savePreset: "+ Save Route",
-                presetSavedAlert: "Route saved to presets!",
-                presetExistsAlert: "This route is already in presets!",
-                startLabel: "Origin (Select Line & Station)",
-                endLabel: "Destination (Select Line & Station)",
-                swapBtn: "Swap Origin & Destination",
-                footer: "Auto-refreshes every 10s ｜ Entry gates close 5 mins before last train",
+                savedMsg: "Route saved to presets!",
+                existMsg: "Route already exists in presets.",
+                originLabel: "Origin (Select Line & Station)",
+                destLabel: "Destination (Select Line & Station)",
+                swapText: "Swap Origin & Destination",
                 sameStation: "Origin and destination are the same",
-                noRoute: "No connecting route found",
-                stopsCount: (n) => `${n} stop${n > 1 ? 's' : ''}`,
-                directTrip: "Direct (0 transfers)",
-                transferCount: (n) => `${n} transfer${n > 1 ? 's' : ''}`,
-                totalMins: (m) => `Est. ${m} mins`,
-                dirTo: (dest) => `Towards ${dest}`,
-                branchTransfer: (sta) => `Change to branch train at ${sta} (~2 mins)`,
-                lineTransfer: (sta, line, mins) => `Transfer at <strong>${sta}</strong> to <strong>${line}</strong> (~${mins} mins walk)`,
-                loading: "Loading live train times...",
-                noTrains: "No upcoming trains (Service may have ended)",
-                connErr: "Connection failed, retrying in 10s",
-                toDest: (dest) => `To ${dest}`,
-                suggestedCatch: "Suggested Connection",
-                shortTurnWarn: (dest) => `⚠️ Change at ${dest}`,
-                platTime: (plat, time) => `Platform ${plat} ｜ Dep ${time}`,
+                stopsUnit: "stops",
+                totalPrefix: "",
+                directText: "Direct (0 transfers)",
+                transferText: (n) => `${n} transfer${n > 1 ? 's' : ''}`,
+                estTime: (m) => `Est. ${m} mins`,
+                towards: "Towards",
+                toDest: "To",
+                plat: "Platform",
+                dep: "Dep",
+                arr: "Arr",
                 arriving: "Arriving 🚆",
-                minsWait: (m) => `${m} min${m === '1' ? '' : 's'}`,
-                etaAt: (time, sta) => `Arr ${sta} ~${time}`
+                mins: "mins",
+                catchThis: "Recommended",
+                shortTurn: (s) => `⚠️ Change at ${s}`,
+                transferWalk: (sta, line, mins) => `🚶 Change at [${sta}] to ${line} (~${mins} mins walk)`,
+                loading: "Loading live trains...",
+                noTrains: "No upcoming trains (After last train)",
+                apiErr: "No live data available",
+                sysUnavail: "System temporarily unable to provide data",
+                connErr: "Connection error, retrying in 10s",
+                firstTrain: (sta) => `🌅 [${sta}] First Train`,
+                lastTrain: (sta) => `🌃 [${sta}] Last Train`,
+                footerNote: "Auto-refreshes every 10s ｜ Entry gates close 5 mins before last train"
             }
         };
 
-        const MTR_LINES = {
-            TML: {
-                name: { TC: "屯馬綫 (啡色)", EN: "Tuen Ma Line (Brown)" },
-                shortName: { TC: "屯馬綫", EN: "Tuen Ma Line" },
-                color: "#9A3B26",
-                upDest: { TC: "屯門", EN: "Tuen Mun" },
-                downDest: { TC: "烏溪沙", EN: "Wu Kai Sha" },
-                stations: [
-                    { code: "WKS", name: { TC: "烏溪沙", EN: "Wu Kai Sha" }, mins: 2 },
-                    { code: "MOS", name: { TC: "馬鞍山", EN: "Ma On Shan" }, mins: 2 },
-                    { code: "HEO", name: { TC: "恆安", EN: "Heng On" }, mins: 2 },
-                    { code: "TSH", name: { TC: "大水坑", EN: "Tai Shui Hang" }, mins: 3 },
-                    { code: "SHM", name: { TC: "石門", EN: "Shek Mun" }, mins: 2 },
-                    { code: "CIO", name: { TC: "第一城", EN: "City One" }, mins: 2 },
-                    { code: "STW", name: { TC: "沙田圍", EN: "Sha Tin Wai" }, mins: 2 },
-                    { code: "CKT", name: { TC: "車公廟", EN: "Che Kung Temple" }, mins: 3 },
-                    { code: "TAW", name: { TC: "大圍", EN: "Tai Wai" }, mins: 3 },
-                    { code: "HIK", name: { TC: "顯徑", EN: "Hin Keng" }, mins: 5 },
-                    { code: "DIH", name: { TC: "鑽石山", EN: "Diamond Hill" }, mins: 2 },
-                    { code: "KAT", name: { TC: "啟德", EN: "Kai Tak" }, mins: 2 },
-                    { code: "SUW", name: { TC: "宋皇臺", EN: "Sung Wong Toi" }, mins: 2 },
-                    { code: "TKW", name: { TC: "土瓜灣", EN: "To Kwa Wan" }, mins: 2 },
-                    { code: "HOM", name: { TC: "何文田", EN: "Ho Man Tin" }, mins: 3 },
-                    { code: "HUH", name: { TC: "紅磡", EN: "Hung Hom" }, mins: 3 },
-                    { code: "ETS", name: { TC: "尖東", EN: "East Tsim Sha Tsui" }, mins: 2 },
-                    { code: "AUS", name: { TC: "柯士甸", EN: "Austin" }, mins: 2 },
-                    { code: "NAC", name: { TC: "南昌", EN: "Nam Cheong" }, mins: 3 },
-                    { code: "MEF", name: { TC: "美孚", EN: "Mei Foo" }, mins: 4 },
-                    { code: "TWW", name: { TC: "荃灣西", EN: "Tsuen Wan West" }, mins: 6 },
-                    { code: "KSR", name: { TC: "錦上路", EN: "Kam Sheung Road" }, mins: 4 },
-                    { code: "YUL", name: { TC: "元朗", EN: "Yuen Long" }, mins: 2 },
-                    { code: "LOP", name: { TC: "朗屏", EN: "Long Ping" }, mins: 3 },
-                    { code: "TIS", name: { TC: "天水圍", EN: "Tin Shui Wai" }, mins: 3 },
-                    { code: "SIH", name: { TC: "兆康", EN: "Siu Hong" }, mins: 3 },
-                    { code: "TUM", name: { TC: "屯門", EN: "Tuen Mun" }, mins: 0 }
-                ]
-            },
-            TCL: {
-                name: { TC: "東涌綫 (橙色)", EN: "Tung Chung Line (Orange)" },
-                shortName: { TC: "東涌綫", EN: "Tung Chung Line" },
-                color: "#F38B00",
-                upDest: { TC: "東涌", EN: "Tung Chung" },
-                downDest: { TC: "香港", EN: "Hong Kong" },
-                stations: [
-                    { code: "HOK", name: { TC: "香港", EN: "Hong Kong" }, mins: 3 },
-                    { code: "KOW", name: { TC: "九龍", EN: "Kowloon" }, mins: 3 },
-                    { code: "OLY", name: { TC: "奧運", EN: "Olympic" }, mins: 2 },
-                    { code: "NAC", name: { TC: "南昌", EN: "Nam Cheong" }, mins: 3 },
-                    { code: "LAK", name: { TC: "荔景", EN: "Lai King" }, mins: 6 },
-                    { code: "TSY", name: { TC: "青衣", EN: "Tsing Yi" }, mins: 10 },
-                    { code: "SUN", name: { TC: "欣澳", EN: "Sunny Bay" }, mins: 6 },
-                    { code: "TUC", name: { TC: "東涌", EN: "Tung Chung" }, mins: 0 }
-                ]
-            },
-            EAL: {
-                name: { TC: "東鐵綫 (淺藍色)", EN: "East Rail Line (Light Blue)" },
-                shortName: { TC: "東鐵綫", EN: "East Rail Line" },
-                color: "#5EB6E4",
-                upDest: { TC: "羅湖 / 落馬洲", EN: "Lo Wu / Lok Ma Chau" },
-                downDest: { TC: "金鐘", EN: "Admiralty" },
-                stations: [
-                    { code: "ADM", name: { TC: "金鐘", EN: "Admiralty" }, mins: 3 },
-                    { code: "EXC", name: { TC: "會展", EN: "Exhibition Centre" }, mins: 4 },
-                    { code: "HUH", name: { TC: "紅磡", EN: "Hung Hom" }, mins: 3 },
-                    { code: "MKK", name: { TC: "旺角東", EN: "Mong Kok East" }, mins: 4 },
-                    { code: "KOT", name: { TC: "九龍塘", EN: "Kowloon Tong" }, mins: 5 },
-                    { code: "TAW", name: { TC: "大圍", EN: "Tai Wai" }, mins: 3 },
-                    { code: "SHT", name: { TC: "沙田", EN: "Sha Tin" }, mins: 3 },
-                    { code: "FOT", name: { TC: "火炭", EN: "Fo Tan" }, mins: 4 },
-                    { code: "UNI", name: { TC: "大學", EN: "University" }, mins: 6 },
-                    { code: "TAP", name: { TC: "大埔墟", EN: "Tai Po Market" }, mins: 3 },
-                    { code: "TWO", name: { TC: "太和", EN: "Tai Wo" }, mins: 5 },
-                    { code: "FAN", name: { TC: "粉嶺", EN: "Fanling" }, mins: 3 },
-                    { code: "SHS", name: { TC: "上水", EN: "Sheung Shui" }, mins: 5 },
-                    { code: "LOW", name: { TC: "羅湖", EN: "Lo Wu" }, mins: 0 },
-                    { code: "LMC", name: { TC: "落馬洲", EN: "Lok Ma Chau" }, mins: 0 }
-                ]
-            },
-            KTL: {
-                name: { TC: "觀塘綫 (綠色)", EN: "Kwun Tong Line (Green)" },
-                shortName: { TC: "觀塘綫", EN: "Kwun Tong Line" },
-                color: "#00AB4E",
-                upDest: { TC: "調景嶺", EN: "Tiu Keng Leng" },
-                downDest: { TC: "黃埔", EN: "Whampoa" },
-                stations: [
-                    { code: "WHA", name: { TC: "黃埔", EN: "Whampoa" }, mins: 2 },
-                    { code: "HOM", name: { TC: "何文田", EN: "Ho Man Tin" }, mins: 3 },
-                    { code: "YMT", name: { TC: "油麻地", EN: "Yau Ma Tei" }, mins: 2 },
-                    { code: "MOK", name: { TC: "旺角", EN: "Mong Kok" }, mins: 2 },
-                    { code: "PRE", name: { TC: "太子", EN: "Prince Edward" }, mins: 2 },
-                    { code: "SKM", name: { TC: "石硤尾", EN: "Shek Kip Mei" }, mins: 3 },
-                    { code: "KOT", name: { TC: "九龍塘", EN: "Kowloon Tong" }, mins: 2 },
-                    { code: "LOF", name: { TC: "樂富", EN: "Lok Fu" }, mins: 2 },
-                    { code: "WTS", name: { TC: "黃大仙", EN: "Wong Tai Sin" }, mins: 2 },
-                    { code: "DIH", name: { TC: "鑽石山", EN: "Diamond Hill" }, mins: 2 },
-                    { code: "CHH", name: { TC: "彩虹", EN: "Choi Hung" }, mins: 3 },
-                    { code: "KOB", name: { TC: "九龍灣", EN: "Kowloon Bay" }, mins: 2 },
-                    { code: "NTK", name: { TC: "牛頭角", EN: "Ngau Tau Kok" }, mins: 2 },
-                    { code: "KWT", name: { TC: "觀塘", EN: "Kwun Tong" }, mins: 2 },
-                    { code: "LAT", name: { TC: "藍田", EN: "Lam Tin" }, mins: 3 },
-                    { code: "YAT", name: { TC: "油塘", EN: "Yau Tong" }, mins: 3 },
-                    { code: "TIK", name: { TC: "調景嶺", EN: "Tiu Keng Leng" }, mins: 0 }
-                ]
+        
+        
+        // Station-specific First Train departure times (exact MTR published first train times at each station)
+        const STATION_FIRST_TRAINS = {
+            ISL: {
+                UP: { // Towards Chai Wan
+                    KET: "06:00", HKU: "06:02", SYP: "06:04", SHW: "06:06", CEN: "06:08",
+                    ADM: "06:10", WAC: "06:12", CAB: "06:14", TIH: "06:16", FOH: "06:18",
+                    NOP: "06:20", QUB: "06:22", TAK: "06:24", SWH: "06:26", SKW: "06:28",
+                    HFC: "06:31", CHW: "--:--"
+                },
+                DOWN: { // Towards Kennedy Town
+                    CHW: "05:55", HFC: "05:58", SKW: "06:01", SWH: "06:03", TAK: "06:05",
+                    QUB: "06:07", NOP: "06:09", FOH: "06:11", TIH: "06:13", CAB: "06:15",
+                    WAC: "06:17", ADM: "06:19", CEN: "06:22", SHW: "06:24", SYP: "06:26",
+                    HKU: "06:28", KET: "--:--"
+                }
             },
             TWL: {
-                name: { TC: "荃灣綫 (紅色)", EN: "Tsuen Wan Line (Red)" },
-                shortName: { TC: "荃灣綫", EN: "Tsuen Wan Line" },
-                color: "#E2231A",
-                upDest: { TC: "荃灣", EN: "Tsuen Wan" },
-                downDest: { TC: "中環", EN: "Central" },
-                stations: [
-                    { code: "CEN", name: { TC: "中環", EN: "Central" }, mins: 2 },
-                    { code: "ADM", name: { TC: "金鐘", EN: "Admiralty" }, mins: 4 },
-                    { code: "TST", name: { TC: "尖沙咀", EN: "Tsim Sha Tsui" }, mins: 2 },
-                    { code: "JOR", name: { TC: "佐敦", EN: "Jordan" }, mins: 2 },
-                    { code: "YMT", name: { TC: "油麻地", EN: "Yau Ma Tei" }, mins: 2 },
-                    { code: "MOK", name: { TC: "旺角", EN: "Mong Kok" }, mins: 2 },
-                    { code: "PRE", name: { TC: "太子", EN: "Prince Edward" }, mins: 2 },
-                    { code: "SSP", name: { TC: "深水埗", EN: "Sham Shui Po" }, mins: 2 },
-                    { code: "CSW", name: { TC: "長沙灣", EN: "Cheung Sha Wan" }, mins: 2 },
-                    { code: "LCK", name: { TC: "荔枝角", EN: "Lai Chi Kok" }, mins: 3 },
-                    { code: "MEF", name: { TC: "美孚", EN: "Mei Foo" }, mins: 3 },
-                    { code: "LAK", name: { TC: "荔景", EN: "Lai King" }, mins: 3 },
-                    { code: "KWF", name: { TC: "葵芳", EN: "Kwai Fong" }, mins: 2 },
-                    { code: "KWH", name: { TC: "葵興", EN: "Kwai Hing" }, mins: 3 },
-                    { code: "TWH", name: { TC: "大窩口", EN: "Tai Wo Hau" }, mins: 2 },
-                    { code: "TSW", name: { TC: "荃灣", EN: "Tsuen Wan" }, mins: 0 }
-                ]
+                UP: { // Towards Tsuen Wan
+                    CEN: "06:06", ADM: "06:08", TST: "06:11", JOR: "06:13", YMT: "06:15",
+                    MOK: "06:17", PRE: "06:19", SSP: "06:21", CSW: "06:23", LCK: "06:25",
+                    MEF: "06:27", LAK: "06:30", KWF: "06:32", KWH: "06:34", TWH: "06:36",
+                    TSW: "--:--"
+                },
+                DOWN: { // Towards Central
+                    TSW: "06:00", TWH: "06:03", KWH: "06:05", KWF: "06:07", LAK: "06:09",
+                    MEF: "06:12", LCK: "06:14", CSW: "06:16", SSP: "06:18", PRE: "06:20",
+                    MOK: "06:22", YMT: "06:24", JOR: "06:26", TST: "06:28", ADM: "06:31",
+                    CEN: "--:--"
+                }
             },
-            ISL: {
-                name: { TC: "港島綫 (深藍色)", EN: "Island Line (Dark Blue)" },
-                shortName: { TC: "港島綫", EN: "Island Line" },
-                color: "#0075C9",
-                upDest: { TC: "柴灣", EN: "Chai Wan" },
-                downDest: { TC: "堅尼地城", EN: "Kennedy Town" },
-                stations: [
-                    { code: "KET", name: { TC: "堅尼地城", EN: "Kennedy Town" }, mins: 2 },
-                    { code: "HKU", name: { TC: "香港大學", EN: "HKU" }, mins: 2 },
-                    { code: "SYP", name: { TC: "西營盤", EN: "Sai Ying Pun" }, mins: 2 },
-                    { code: "SHW", name: { TC: "上環", EN: "Sheung Wan" }, mins: 2 },
-                    { code: "CEN", name: { TC: "中環", EN: "Central" }, mins: 2 },
-                    { code: "ADM", name: { TC: "金鐘", EN: "Admiralty" }, mins: 2 },
-                    { code: "WAC", name: { TC: "灣仔", EN: "Wan Chai" }, mins: 2 },
-                    { code: "CAB", name: { TC: "銅鑼灣", EN: "Causeway Bay" }, mins: 2 },
-                    { code: "TIH", name: { TC: "天后", EN: "Tin Hau" }, mins: 2 },
-                    { code: "FOH", name: { TC: "炮台山", EN: "Fortress Hill" }, mins: 2 },
-                    { code: "NOP", name: { TC: "北角", EN: "North Point" }, mins: 2 },
-                    { code: "QUB", name: { TC: "鰂魚涌", EN: "Quarry Bay" }, mins: 2 },
-                    { code: "TAK", name: { TC: "太古", EN: "Tai Koo" }, mins: 2 },
-                    { code: "SWH", name: { TC: "西灣河", EN: "Sai Wan Ho" }, mins: 2 },
-                    { code: "SKW", name: { TC: "筲箕灣", EN: "Shau Kei Wan" }, mins: 3 },
-                    { code: "HFC", name: { TC: "杏花邨", EN: "Heng Fa Chuen" }, mins: 3 },
-                    { code: "CHW", name: { TC: "柴灣", EN: "Chai Wan" }, mins: 0 }
-                ]
+            KTL: {
+                UP: { // Towards Tiu Keng Leng
+                    WHA: "06:10", HOM: "06:12", YMT: "06:15", MOK: "06:17", PRE: "06:19",
+                    SKM: "06:21", KOT: "06:24", LOF: "06:26", WTS: "06:28", DIH: "06:30",
+                    CHH: "06:32", KOB: "06:35", NTK: "06:37", KWT: "06:39", LAT: "06:41",
+                    YAT: "06:44", TIK: "--:--"
+                },
+                DOWN: { // Towards Whampoa
+                    TIK: "06:00", YAT: "06:03", LAT: "06:06", KWT: "06:08", NTK: "06:10",
+                    KOB: "06:12", CHH: "06:15", DIH: "06:17", WTS: "06:19", LOF: "06:21",
+                    KOT: "06:23", SKM: "06:26", PRE: "06:28", MOK: "06:30", YMT: "06:32",
+                    HOM: "06:35", WHA: "--:--"
+                }
+            },
+            TML: {
+                UP: { // Towards Tuen Mun
+                    WKS: "05:40", MOS: "05:42", HEO: "05:44", TSH: "05:46", SHM: "05:49",
+                    CIO: "05:51", STW: "05:53", CKT: "05:55", TAW: "05:58", HIK: "06:01",
+                    DIH: "06:06", KAT: "06:08", SUW: "06:10", TKW: "06:12", HOM: "06:14",
+                    HUH: "06:17", ETS: "06:20", AUS: "06:22", NAC: "06:25", MEF: "06:28",
+                    TWW: "06:32", KSR: "06:38", YUL: "06:42", LOP: "06:44", TIS: "06:47",
+                    SIH: "06:50", TUM: "--:--"
+                },
+                DOWN: { // Towards Wu Kai Sha
+                    TUM: "05:45", SIH: "05:48", TIS: "05:51", LOP: "05:54", YUL: "05:56",
+                    KSR: "06:00", TWW: "06:06", MEF: "06:10", NAC: "06:13", AUS: "06:15",
+                    ETS: "06:18", HUH: "06:21", HOM: "06:24", TKW: "06:26", SUW: "06:28",
+                    KAT: "06:30", DIH: "06:32", HIK: "06:37", TAW: "06:40", CKT: "06:43",
+                    STW: "06:45", CIO: "06:47", SHM: "06:49", TSH: "06:52", HEO: "06:54",
+                    MOS: "06:56", WKS: "--:--"
+                }
+            },
+            EAL: {
+                UP: { // Towards Lo Wu / Lok Ma Chau
+                    ADM: "05:25", EXC: "05:28", HUH: "05:32", MKK: "05:35", KOT: "05:38",
+                    TAW: "05:42", SHT: "05:45", FOT: "05:48", RAC: "05:50", UNI: "05:53",
+                    TAP: "05:58", TWO: "06:00", FAN: "06:05", SHS: "06:08",
+                    LOW: "--:--", LMC: "--:--"
+                },
+                DOWN: { // Towards Admiralty
+                    LOW: "05:55", LMC: "06:38", SHS: "06:02", FAN: "06:04", TWO: "06:09",
+                    TAP: "06:11", UNI: "06:16", RAC: "06:19", FOT: "06:21", SHT: "06:24",
+                    TAW: "06:27", KOT: "06:31", MKK: "06:34", HUH: "06:37", EXC: "06:41",
+                    ADM: "--:--"
+                }
             },
             SIL: {
-                name: { TC: "南港島綫 (淺綠色)", EN: "South Island Line (Light Green)" },
-                shortName: { TC: "南港島綫", EN: "South Island Line" },
-                color: "#B5BD00",
-                upDest: { TC: "海怡半島", EN: "South Horizons" },
-                downDest: { TC: "金鐘", EN: "Admiralty" },
-                stations: [
-                    { code: "ADM", name: { TC: "金鐘", EN: "Admiralty" }, mins: 4 },
-                    { code: "OCP", name: { TC: "海洋公園", EN: "Ocean Park" }, mins: 2 },
-                    { code: "WCH", name: { TC: "黃竹坑", EN: "Wong Chuk Hang" }, mins: 3 },
-                    { code: "LET", name: { TC: "利東", EN: "Lei Tung" }, mins: 2 },
-                    { code: "SOH", name: { TC: "海怡半島", EN: "South Horizons" }, mins: 0 }
-                ]
+                UP: { // Towards South Horizons
+                    ADM: "06:11", OCP: "06:15", WCH: "06:17", LET: "06:19", SOH: "--:--"
+                },
+                DOWN: { // Towards Admiralty
+                    SOH: "06:00", LET: "06:02", WCH: "06:04", OCP: "06:06", ADM: "--:--"
+                }
             },
             TKL: {
-                name: { TC: "將軍澳綫 (紫色)", EN: "Tseung Kwan O Line (Purple)" },
-                shortName: { TC: "將軍澳綫", EN: "Tseung Kwan O Line" },
-                color: "#7D499D",
-                upDest: { TC: "寶琳 / 康城", EN: "Po Lam / LOHAS Park" },
-                downDest: { TC: "北角", EN: "North Point" },
-                stations: [
-                    { code: "NOP", name: { TC: "北角", EN: "North Point" }, mins: 2 },
-                    { code: "QUB", name: { TC: "鰂魚涌", EN: "Quarry Bay" }, mins: 4 },
-                    { code: "YAT", name: { TC: "油塘", EN: "Yau Tong" }, mins: 3 },
-                    { code: "TIK", name: { TC: "調景嶺", EN: "Tiu Keng Leng" }, mins: 2 },
-                    { code: "TKO", name: { TC: "將軍澳", EN: "Tseung Kwan O" }, mins: 3 },
-                    { code: "HAH", name: { TC: "坑口", EN: "Hang Hau" }, mins: 2 },
-                    { code: "POA", name: { TC: "寶琳", EN: "Po Lam" }, mins: 0 },
-                    { code: "LHP", name: { TC: "康城", EN: "LOHAS Park" }, mins: 0 }
-                ]
+                UP: { // Towards Po Lam / LOHAS Park
+                    NOP: "06:13", QUB: "06:15", YAT: "06:18", TIK: "06:21",
+                    TKO: "06:24", HAH: "06:26", POA: "--:--", LHP: "--:--"
+                },
+                DOWN: { // Towards North Point
+                    POA: "06:00", LHP: "05:57", HAH: "06:02", TKO: "06:04", TIK: "06:07",
+                    YAT: "06:10", QUB: "06:13", NOP: "--:--"
+                }
+            },
+            TCL: {
+                UP: { // Towards Tung Chung
+                    HOK: "06:01", KOW: "06:04", OLY: "06:07", NAC: "06:09", LAK: "06:12",
+                    TSY: "06:15", SUN: "06:22", TUC: "--:--"
+                },
+                DOWN: { // Towards Hong Kong
+                    TUC: "06:02", SUN: "06:08", TSY: "06:15", LAK: "06:18", NAC: "06:21",
+                    OLY: "06:23", KOW: "06:26", HOK: "--:--"
+                }
             },
             AEL: {
-                name: { TC: "機場快綫 (藍綠色)", EN: "Airport Express (Teal)" },
-                shortName: { TC: "機場快綫", EN: "Airport Express" },
-                color: "#00888A",
-                upDest: { TC: "機場 / 博覽館", EN: "Airport / AsiaWorld-Expo" },
-                downDest: { TC: "香港", EN: "Hong Kong" },
-                stations: [
-                    { code: "HOK", name: { TC: "香港", EN: "Hong Kong" }, mins: 3 },
-                    { code: "KOW", name: { TC: "九龍", EN: "Kowloon" }, mins: 7 },
-                    { code: "TSY", name: { TC: "青衣", EN: "Tsing Yi" }, mins: 14 },
-                    { code: "AIR", name: { TC: "機場", EN: "Airport" }, mins: 2 },
-                    { code: "AWE", name: { TC: "博覽館", EN: "AsiaWorld-Expo" }, mins: 0 }
-                ]
+                UP: { // Towards AsiaWorld-Expo
+                    HOK: "05:50", KOW: "05:53", TSY: "05:57", AIR: "06:11", AWE: "--:--"
+                },
+                DOWN: { // Towards Hong Kong
+                    AWE: "05:54", AIR: "05:57", TSY: "06:11", KOW: "06:15", HOK: "--:--"
+                }
             },
             DRL: {
-                name: { TC: "迪士尼綫 (粉紅色)", EN: "Disneyland Resort Line (Pink)" },
-                shortName: { TC: "迪士尼綫", EN: "Disneyland Resort Line" },
-                color: "#F173AC",
-                upDest: { TC: "迪士尼", EN: "Disneyland Resort" },
-                downDest: { TC: "欣澳", EN: "Sunny Bay" },
-                stations: [
-                    { code: "SUN", name: { TC: "欣澳", EN: "Sunny Bay" }, mins: 4 },
-                    { code: "DIS", name: { TC: "迪士尼", EN: "Disneyland Resort" }, mins: 0 }
-                ]
+                UP: { // Towards Disneyland
+                    SUN: "06:15", DIS: "--:--"
+                },
+                DOWN: { // Towards Sunny Bay
+                    DIS: "06:20", SUN: "--:--"
+                }
             }
         };
 
-        const GLOBAL_STATIONS = {};
-        Object.keys(MTR_LINES).forEach(lineCode => {
-            MTR_LINES[lineCode].stations.forEach(s => {
-                GLOBAL_STATIONS[s.code] = s.name;
-            });
+        function getStationFirstTrain(lineCode, dir, staCode) {
+            return STATION_FIRST_TRAINS[lineCode]?.[dir]?.[staCode] || "--:--";
+        }
+
+        // Station-specific Last Train departure times (exact MTR published last train times at each station)
+        const STATION_LAST_TRAINS = {
+            ISL: {
+                UP: { // Towards Chai Wan
+                    KET: "00:50", HKU: "00:52", SYP: "00:54", SHW: "00:56", CEN: "00:58",
+                    ADM: "01:00", WAC: "01:02", CAB: "01:04", TIH: "01:06", FOH: "01:08",
+                    NOP: "01:10", QUB: "01:12", TAK: "01:14", SWH: "01:16", SKW: "01:18",
+                    HFC: "01:21", CHW: "--:--"
+                },
+                DOWN: { // Towards Kennedy Town
+                    CHW: "00:35", HFC: "00:38", SKW: "00:41", SWH: "00:43", TAK: "00:45",
+                    QUB: "00:47", NOP: "00:49", FOH: "00:51", TIH: "00:53", CAB: "00:55",
+                    WAC: "00:57", ADM: "00:59", CEN: "01:02", SHW: "01:04", SYP: "01:06",
+                    HKU: "01:08", KET: "--:--"
+                }
+            },
+            TWL: {
+                UP: { // Towards Tsuen Wan
+                    CEN: "00:54", ADM: "00:56", TST: "00:59", JOR: "01:01", YMT: "01:03",
+                    MOK: "01:05", PRE: "01:07", SSP: "01:09", CSW: "01:11", LCK: "01:13",
+                    MEF: "01:15", LAK: "01:18", KWF: "01:20", KWH: "01:22", TWH: "01:24",
+                    TSW: "--:--"
+                },
+                DOWN: { // Towards Central
+                    TSW: "00:30", TWH: "00:33", KWH: "00:35", KWF: "00:37", LAK: "00:39",
+                    MEF: "00:42", LCK: "00:44", CSW: "00:46", SSP: "00:48", PRE: "00:50",
+                    MOK: "00:52", YMT: "00:54", JOR: "00:56", TST: "00:58", ADM: "01:01",
+                    CEN: "--:--"
+                }
+            },
+            KTL: {
+                UP: { // Towards Tiu Keng Leng
+                    WHA: "00:40", HOM: "00:42", YMT: "00:45", MOK: "00:47", PRE: "00:49",
+                    SKM: "00:51", KOT: "00:54", LOF: "00:56", WTS: "00:58", DIH: "01:00",
+                    CHH: "01:02", KOB: "01:05", NTK: "01:07", KWT: "01:09", LAT: "01:11",
+                    YAT: "01:14", TIK: "--:--"
+                },
+                DOWN: { // Towards Whampoa
+                    TIK: "00:32", YAT: "00:35", LAT: "00:38", KWT: "00:40", NTK: "00:42",
+                    KOB: "00:44", CHH: "00:47", DIH: "00:49", WTS: "00:51", LOF: "00:53",
+                    KOT: "00:55", SKM: "00:58", PRE: "01:00", MOK: "01:02", YMT: "01:04",
+                    HOM: "01:07", WHA: "--:--"
+                }
+            },
+            TML: {
+                UP: { // Towards Tuen Mun
+                    WKS: "00:08", MOS: "00:10", HEO: "00:12", TSH: "00:14", SHM: "00:17",
+                    CIO: "00:19", STW: "00:21", CKT: "00:23", TAW: "00:26", HIK: "00:29",
+                    DIH: "00:34", KAT: "00:36", SUW: "00:38", TKW: "00:40", HOM: "00:42",
+                    HUH: "00:45", ETS: "00:48", AUS: "00:50", NAC: "00:53", MEF: "00:56",
+                    TWW: "01:00", KSR: "01:06", YUL: "01:10", LOP: "01:12", TIS: "01:15",
+                    SIH: "01:18", TUM: "--:--"
+                },
+                DOWN: { // Towards Wu Kai Sha
+                    TUM: "00:12", SIH: "00:15", TIS: "00:18", LOP: "00:21", YUL: "00:23",
+                    KSR: "00:27", TWW: "00:33", MEF: "00:37", NAC: "00:40", AUS: "00:42",
+                    ETS: "00:45", HUH: "00:48", HOM: "00:51", TKW: "00:53", SUW: "00:55",
+                    KAT: "00:57", DIH: "00:59", HIK: "01:04", TAW: "01:07", CKT: "01:10",
+                    STW: "01:12", CIO: "01:14", SHM: "01:16", TSH: "01:19", HEO: "01:21",
+                    MOS: "01:23", WKS: "--:--"
+                }
+            },
+            EAL: {
+                UP: { // Towards Lo Wu / Lok Ma Chau
+                    ADM: "23:01 (羅湖) / 21:35 (落馬洲)", EXC: "23:04 (羅湖) / 21:38 (落馬洲)",
+                    HUH: "23:08 (羅湖) / 21:42 (落馬洲)", MKK: "23:11 (羅湖) / 21:45 (落馬洲)",
+                    KOT: "23:14 (羅湖) / 21:48 (落馬洲)", TAW: "23:18 (羅湖) / 21:52 (落馬洲)",
+                    SHT: "23:21 (羅湖) / 21:55 (落馬洲)", FOT: "23:24 (羅湖) / 21:58 (落馬洲)",
+                    RAC: "23:26 (羅湖) / 22:00 (落馬洲)", UNI: "23:29 (羅湖) / 22:03 (落馬洲)",
+                    TAP: "23:34 (羅湖) / 22:08 (落馬洲)", TWO: "23:36 (羅湖) / 22:10 (落馬洲)",
+                    FAN: "23:41 (羅湖) / 22:15 (落馬洲)", SHS: "23:44 (羅湖) / 22:18 (落馬洲)",
+                    LOW: "--:--", LMC: "--:--"
+                },
+                DOWN: { // Towards Admiralty
+                    LOW: "23:55", LMC: "22:55", SHS: "00:02", FAN: "00:04", TWO: "00:09",
+                    TAP: "00:11", UNI: "00:16", RAC: "00:19", FOT: "00:21", SHT: "00:24",
+                    TAW: "00:27", KOT: "00:31", MKK: "00:34", HUH: "00:37", EXC: "00:41",
+                    ADM: "--:--"
+                }
+            },
+            SIL: {
+                UP: { // Towards South Horizons
+                    ADM: "01:05", OCP: "01:09", WCH: "01:11", LET: "01:13", SOH: "--:--"
+                },
+                DOWN: { // Towards Admiralty
+                    SOH: "00:46", LET: "00:48", WCH: "00:50", OCP: "00:52", ADM: "--:--"
+                }
+            },
+            TKL: {
+                UP: { // Towards Po Lam / LOHAS Park
+                    NOP: "01:12 (寶琳) / 00:45 (康城)", QUB: "01:14 (寶琳) / 00:47 (康城)",
+                    YAT: "01:17 (寶琳) / 00:50 (康城)", TIK: "01:20 (寶琳) / 00:53 (康城)",
+                    TKO: "01:23 (寶琳) / 00:56 (康城)", HAH: "01:25 (寶琳)",
+                    POA: "--:--", LHP: "--:--"
+                },
+                DOWN: { // Towards North Point
+                    POA: "00:50", LHP: "00:48", HAH: "00:52", TKO: "00:54", TIK: "00:57",
+                    YAT: "01:00", QUB: "01:03", NOP: "--:--"
+                }
+            },
+            TCL: {
+                UP: { // Towards Tung Chung
+                    HOK: "00:50", KOW: "00:53", OLY: "00:56", NAC: "00:58", LAK: "01:01",
+                    TSY: "01:04", SUN: "01:11", TUC: "--:--"
+                },
+                DOWN: { // Towards Hong Kong
+                    TUC: "00:43", SUN: "00:49", TSY: "00:56", LAK: "00:59", NAC: "01:02",
+                    OLY: "01:04", KOW: "01:07", HOK: "--:--"
+                }
+            },
+            AEL: {
+                UP: { // Towards AsiaWorld-Expo
+                    HOK: "00:48", KOW: "00:51", TSY: "00:55", AIR: "01:09", AWE: "--:--"
+                },
+                DOWN: { // Towards Hong Kong
+                    AWE: "00:45", AIR: "00:48", TSY: "01:02", KOW: "01:06", HOK: "--:--"
+                }
+            },
+            DRL: {
+                UP: { // Towards Disneyland
+                    SUN: "00:45", DIS: "--:--"
+                },
+                DOWN: { // Towards Sunny Bay
+                    DIS: "00:40", SUN: "--:--"
+                }
+            }
+        };
+
+        function getStationLastTrain(lineCode, dir, staCode) {
+            const raw = STATION_LAST_TRAINS[lineCode]?.[dir]?.[staCode];
+            if (!raw) return "--:--";
+            if (currentLang === "EN") {
+                return raw
+                    .replace("羅湖", "Lo Wu")
+                    .replace("落馬洲", "LMC")
+                    .replace("寶琳", "Po Lam")
+                    .replace("康城", "LOHAS");
+            }
+            return raw;
+        }
+
+        // Full 10 MTR Lines with official colors, station sequences, and line terminal First/Last train hours
+        const LINES = {
+            TML: {
+                name: { TC: "屯馬綫", EN: "Tuen Ma Line" },
+                colorName: { TC: "啡色", EN: "Brown" },
+                color: "#9A3B26",
+                schedule: {
+                    UP:   { first: { TC: "05:40 (烏溪沙開)", EN: "05:40 (fr. Wu Kai Sha)" }, last: { TC: "00:08 (往屯門)", EN: "00:08 (to Tuen Mun)" } },
+                    DOWN: { first: { TC: "05:45 (屯門開)", EN: "05:45 (fr. Tuen Mun)" }, last: { TC: "00:12 (往烏溪沙)", EN: "00:12 (to Wu Kai Sha)" } }
+                },
+                stations: ["WKS","MOS","HEO","TSH","SHM","CIO","STW","CKT","TAW","HIK","DIH","KAT","SUW","TKW","HOM","HUH","ETS","AUS","NAC","MEF","TWW","KSR","YUL","LOP","TIS","SIH","TUM"],
+                times: [2,2,2,3,2,2,2,3,3,5,2,2,2,2,3,3,2,2,3,4,6,4,2,3,3,3]
+            },
+            EAL: {
+                name: { TC: "東鐵綫", EN: "East Rail Line" },
+                colorName: { TC: "淺藍色", EN: "Light Blue" },
+                color: "#5EB6E4",
+                schedule: {
+                    UP:   { first: { TC: "05:25 (金鐘開)", EN: "05:25 (fr. Admiralty)" }, last: { TC: "23:01(羅湖) / 21:35(落馬洲)", EN: "23:01(Lo Wu) / 21:35(LMC)" } },
+                    DOWN: { first: { TC: "05:55 (羅湖開)", EN: "05:55 (fr. Lo Wu)" }, last: { TC: "00:30 (往金鐘)", EN: "00:30 (to Admiralty)" } }
+                },
+                stations: ["ADM","EXC","HUH","MKK","KOT","TAW","SHT","FOT","RAC","UNI","TAP","TWO","FAN","SHS","LOW","LMC"],
+                times: [3,4,3,3,3,3,2,3,3,5,2,5,2,4,5],
+                branchSplit: "SHS",
+                branch1: ["LOW"],
+                branch2: ["LMC"]
+            },
+            KTL: {
+                name: { TC: "觀塘綫", EN: "Kwun Tong Line" },
+                colorName: { TC: "綠色", EN: "Green" },
+                color: "#00AB4E",
+                schedule: {
+                    UP:   { first: { TC: "06:10 (黃埔開)", EN: "06:10 (fr. Whampoa)" }, last: { TC: "00:40 (往調景嶺)", EN: "00:40 (to Tiu Keng Leng)" } },
+                    DOWN: { first: { TC: "06:00 (調景嶺開)", EN: "06:00 (fr. Tiu Keng Leng)" }, last: { TC: "00:32 (往黃埔)", EN: "00:32 (to Whampoa)" } }
+                },
+                stations: ["WHA","HOM","YMT","MOK","PRE","SKM","KOT","LOF","WTS","DIH","CHH","KOB","NTK","KWT","LAT","YAT","TIK"],
+                times: [2,2,2,2,2,3,2,2,2,2,3,2,2,2,3,3]
+            },
+            TWL: {
+                name: { TC: "荃灣綫", EN: "Tsuen Wan Line" },
+                colorName: { TC: "紅色", EN: "Red" },
+                color: "#E2231A",
+                schedule: {
+                    UP:   { first: { TC: "06:06 (中環開)", EN: "06:06 (fr. Central)" }, last: { TC: "00:54 (往荃灣)", EN: "00:54 (to Tsuen Wan)" } },
+                    DOWN: { first: { TC: "06:00 (荃灣開)", EN: "06:00 (fr. Tsuen Wan)" }, last: { TC: "00:30 (往中環)", EN: "00:30 (to Central)" } }
+                },
+                stations: ["CEN","ADM","TST","JOR","YMT","MOK","PRE","SSP","CSW","LCK","MEF","LAK","KWF","KWH","TWH","TSW"],
+                times: [2,3,2,2,2,2,2,2,2,2,3,2,2,2,3]
+            },
+            ISL: {
+                name: { TC: "港島綫", EN: "Island Line" },
+                colorName: { TC: "深藍色", EN: "Dark Blue" },
+                color: "#0075C9",
+                schedule: {
+                    UP:   { first: { TC: "06:00 (堅尼地城開)", EN: "06:00 (fr. Kennedy Town)" }, last: { TC: "00:50 (往柴灣)", EN: "00:50 (to Chai Wan)" } },
+                    DOWN: { first: { TC: "05:55 (柴灣開)", EN: "05:55 (fr. Chai Wan)" }, last: { TC: "00:35 (往堅尼地城)", EN: "00:35 (to Kennedy Town)" } }
+                },
+                stations: ["KET","HKU","SYP","SHW","CEN","ADM","WAC","CAB","TIH","FOH","NOP","QUB","TAK","SWH","SKW","HFC","CHW"],
+                times: [2,2,2,2,2,2,2,2,2,2,2,2,2,2,3,3]
+            },
+            SIL: {
+                name: { TC: "南港島綫", EN: "South Island Line" },
+                colorName: { TC: "淺綠色", EN: "Light Green" },
+                color: "#B5BD00",
+                schedule: {
+                    UP:   { first: { TC: "06:11 (金鐘開)", EN: "06:11 (fr. Admiralty)" }, last: { TC: "01:05 (往海怡半島)", EN: "01:05 (to South Horizons)" } },
+                    DOWN: { first: { TC: "06:00 (海怡半島開)", EN: "06:00 (fr. South Horizons)" }, last: { TC: "00:46 (往金鐘)", EN: "00:46 (to Admiralty)" } }
+                },
+                stations: ["ADM","OCP","WCH","LET","SOH"],
+                times: [4,2,2,2]
+            },
+            TKL: {
+                name: { TC: "將軍澳綫", EN: "Tseung Kwan O Line" },
+                colorName: { TC: "紫色", EN: "Purple" },
+                color: "#7D499D",
+                schedule: {
+                    UP:   { first: { TC: "06:13 (北角開)", EN: "06:13 (fr. North Point)" }, last: { TC: "01:12(寶琳) / 00:45(康城)", EN: "01:12(Po Lam) / 00:45(LOHAS)" } },
+                    DOWN: { first: { TC: "06:00 (寶琳開)", EN: "06:00 (fr. Po Lam)" }, last: { TC: "00:50 (往北角)", EN: "00:50 (to North Point)" } }
+                },
+                stations: ["NOP","QUB","YAT","TIK","TKO","HAH","POA","LHP"],
+                times: [2,3,3,3,2,2,4],
+                branchSplit: "TKO",
+                branch1: ["HAH","POA"],
+                branch2: ["LHP"]
+            },
+            TCL: {
+                name: { TC: "東涌綫", EN: "Tung Chung Line" },
+                colorName: { TC: "橙色", EN: "Orange" },
+                color: "#F38B00",
+                schedule: {
+                    UP:   { first: { TC: "06:01 (香港開)", EN: "06:01 (fr. Hong Kong)" }, last: { TC: "00:50 (往東涌)", EN: "00:50 (to Tung Chung)" } },
+                    DOWN: { first: { TC: "06:02 (東涌開)", EN: "06:02 (fr. Tung Chung)" }, last: { TC: "00:43 (往香港)", EN: "00:43 (to Hong Kong)" } }
+                },
+                stations: ["HOK","KOW","OLY","NAC","LAK","TSY","SUN","TUC"],
+                times: [3,3,2,3,3,7,6]
+            },
+            AEL: {
+                name: { TC: "機場快綫", EN: "Airport Express" },
+                colorName: { TC: "藍綠色", EN: "Teal" },
+                color: "#00888A",
+                schedule: {
+                    UP:   { first: { TC: "05:50 (香港開)", EN: "05:50 (fr. Hong Kong)" }, last: { TC: "00:48 (往博覽館)", EN: "00:48 (to AsiaWorld-Expo)" } },
+                    DOWN: { first: { TC: "05:54 (博覽館開)", EN: "05:54 (fr. AsiaWorld-Expo)" }, last: { TC: "00:45 (往香港)", EN: "00:45 (to Hong Kong)" } }
+                },
+                stations: ["HOK","KOW","TSY","AIR","AWE"],
+                times: [3,4,14,2]
+            },
+            DRL: {
+                name: { TC: "迪士尼綫", EN: "Disneyland Resort Line" },
+                colorName: { TC: "粉紅色", EN: "Pink" },
+                color: "#F173AC",
+                schedule: {
+                    UP:   { first: { TC: "06:15 (欣澳開)", EN: "06:15 (fr. Sunny Bay)" }, last: { TC: "00:45 (往迪士尼)", EN: "00:45 (to Disneyland)" } },
+                    DOWN: { first: { TC: "06:20 (迪士尼開)", EN: "06:20 (fr. Disneyland)" }, last: { TC: "00:40 (往欣澳)", EN: "00:40 (to Sunny Bay)" } }
+                },
+                stations: ["SUN","DIS"],
+                times: [4]
+            }
+        };
+
+        // Bilingual Station Dictionary
+        const STATION_NAMES = {
+            WKS:{TC:"烏溪沙",EN:"Wu Kai Sha"}, MOS:{TC:"馬鞍山",EN:"Ma On Shan"}, HEO:{TC:"恆安",EN:"Heng On"},
+            TSH:{TC:"大水坑",EN:"Tai Shui Hang"}, SHM:{TC:"石門",EN:"Shek Mun"}, CIO:{TC:"第一城",EN:"City One"},
+            STW:{TC:"沙田圍",EN:"Sha Tin Wai"}, CKT:{TC:"車公廟",EN:"Che Kung Temple"}, TAW:{TC:"大圍",EN:"Tai Wai"},
+            HIK:{TC:"顯徑",EN:"Hin Keng"}, DIH:{TC:"鑽石山",EN:"Diamond Hill"}, KAT:{TC:"啟德",EN:"Kai Tak"},
+            SUW:{TC:"宋皇臺",EN:"Sung Wong Toi"}, TKW:{TC:"土瓜灣",EN:"To Kwa Wan"}, HOM:{TC:"何文田",EN:"Ho Man Tin"},
+            HUH:{TC:"紅磡",EN:"Hung Hom"}, ETS:{TC:"尖東",EN:"East Tsim Sha Tsui"}, AUS:{TC:"柯士甸",EN:"Austin"},
+            NAC:{TC:"南昌",EN:"Nam Cheong"}, MEF:{TC:"美孚",EN:"Mei Foo"}, TWW:{TC:"荃灣西",EN:"Tsuen Wan West"},
+            KSR:{TC:"錦上路",EN:"Kam Sheung Road"}, YUL:{TC:"元朗",EN:"Yuen Long"}, LOP:{TC:"朗屏",EN:"Long Ping"},
+            TIS:{TC:"天水圍",EN:"Tin Shui Wai"}, SIH:{TC:"兆康",EN:"Siu Hong"}, TUM:{TC:"屯門",EN:"Tuen Mun"},
+            ADM:{TC:"金鐘",EN:"Admiralty"}, EXC:{TC:"會展",EN:"Exhibition Centre"}, MKK:{TC:"旺角東",EN:"Mong Kok East"},
+            KOT:{TC:"九龍塘",EN:"Kowloon Tong"}, SHT:{TC:"沙田",EN:"Sha Tin"}, FOT:{TC:"火炭",EN:"Fo Tan"},
+            RAC:{TC:"馬場",EN:"Racecourse"}, UNI:{TC:"大學",EN:"University"}, TAP:{TC:"大埔墟",EN:"Tai Po Market"},
+            TWO:{TC:"太和",EN:"Tai Wo"}, FAN:{TC:"粉嶺",EN:"Fanling"}, SHS:{TC:"上水",EN:"Sheung Shui"},
+            LOW:{TC:"羅湖",EN:"Lo Wu"}, LMC:{TC:"落馬洲",EN:"Lok Ma Chau"},
+            WHA:{TC:"黃埔",EN:"Whampoa"}, YMT:{TC:"油麻地",EN:"Yau Ma Tei"}, MOK:{TC:"旺角",EN:"Mong Kok"},
+            PRE:{TC:"太子",EN:"Prince Edward"}, SKM:{TC:"石硤尾",EN:"Shek Kip Mei"}, LOF:{TC:"樂富",EN:"Lok Fu"},
+            WTS:{TC:"黃大仙",EN:"Wong Tai Sin"}, CHH:{TC:"彩虹",EN:"Choi Hung"}, KOB:{TC:"九龍灣",EN:"Kowloon Bay"},
+            NTK:{TC:"牛頭角",EN:"Ngau Tau Kok"}, KWT:{TC:"觀塘",EN:"Kwun Tong"}, LAT:{TC:"藍田",EN:"Lam Tin"},
+            YAT:{TC:"油塘",EN:"Yau Tong"}, TIK:{TC:"調景嶺",EN:"Tiu Keng Leng"},
+            CEN:{TC:"中環",EN:"Central"}, TST:{TC:"尖沙咀",EN:"Tsim Sha Tsui"}, JOR:{TC:"佐敦",EN:"Jordan"},
+            SSP:{TC:"深水埗",EN:"Sham Shui Po"}, CSW:{TC:"長沙灣",EN:"Cheung Sha Wan"}, LCK:{TC:"荔枝角",EN:"Lai Chi Kok"},
+            LAK:{TC:"荔景",EN:"Lai King"}, TSY:{TC:"青衣",EN:"Tsing Yi"}, KWF:{TC:"葵芳",EN:"Kwai Fong"},
+            KWH:{TC:"葵興",EN:"Kwai Hing"}, TWH:{TC:"大窩口",EN:"Tai Wo Hau"}, TSW:{TC:"荃灣",EN:"Tsuen Wan"},
+            KET:{TC:"堅尼地城",EN:"Kennedy Town"}, HKU:{TC:"香港大學",EN:"HKU"}, SYP:{TC:"西營盤",EN:"Sai Ying Pun"},
+            SHW:{TC:"上環",EN:"Sheung Wan"}, WAC:{TC:"灣仔",EN:"Wan Chai"}, CAB:{TC:"銅鑼灣",EN:"Causeway Bay"},
+            TIH:{TC:"天后",EN:"Tin Hau"}, FOH:{TC:"炮台山",EN:"Fortress Hill"}, NOP:{TC:"北角",EN:"North Point"},
+            QUB:{TC:"鰂魚涌",EN:"Quarry Bay"}, TAK:{TC:"太古",EN:"Tai Koo"}, SWH:{TC:"西灣河",EN:"Sai Wan Ho"},
+            SKW:{TC:"筲箕灣",EN:"Shau Kei Wan"}, HFC:{TC:"杏花邨",EN:"Heng Fa Chuen"}, CHW:{TC:"柴灣",EN:"Chai Wan"},
+            OCP:{TC:"海洋公園",EN:"Ocean Park"}, WCH:{TC:"黃竹坑",EN:"Wong Chuk Hang"}, LET:{TC:"利東",EN:"Lei Tung"},
+            SOH:{TC:"海怡半島",EN:"South Horizons"},
+            TKO:{TC:"將軍澳",EN:"Tseung Kwan O"}, HAH:{TC:"坑口",EN:"Hang Hau"}, POA:{TC:"寶琳",EN:"Po Lam"},
+            LHP:{TC:"康城",EN:"LOHAS Park"},
+            HOK:{TC:"香港",EN:"Hong Kong"}, KOW:{TC:"九龍",EN:"Kowloon"}, OLY:{TC:"奧運",EN:"Olympic"},
+            SUN:{TC:"欣澳",EN:"Sunny Bay"}, TUC:{TC:"東涌",EN:"Tung Chung"},
+            AIR:{TC:"機場",EN:"Airport"}, AWE:{TC:"博覽館",EN:"AsiaWorld-Expo"},
+            DIS:{TC:"迪士尼",EN:"Disneyland Resort"}
+        };
+
+        const stName = (code) => STATION_NAMES[code] ? STATION_NAMES[code][currentLang] : code;
+        const lnName = (code) => LINES[code] ? LINES[code].name[currentLang] : code;
+
+        // Interchanges
+        const INTERCHANGES = [
+            ["TML","NAC", "TCL","NAC", 2],
+            ["TML","TAW", "EAL","TAW", 2],
+            ["TML","HUH", "EAL","HUH", 3],
+            ["TML","DIH", "KTL","DIH", 3],
+            ["TML","HOM", "KTL","HOM", 3],
+            ["TML","MEF", "TWL","MEF", 4],
+            ["TML","ETS", "TWL","TST", 6],
+            ["TCL","LAK", "TWL","LAK", 1],
+            ["TCL","HOK", "ISL","CEN", 5],
+            ["TCL","HOK", "TWL","CEN", 5],
+            ["TCL","SUN", "DRL","SUN", 2],
+            ["TCL","TSY", "AEL","TSY", 3],
+            ["TCL","KOW", "AEL","KOW", 3],
+            ["TCL","HOK", "AEL","HOK", 3],
+            ["EAL","ADM", "ISL","ADM", 2],
+            ["EAL","ADM", "TWL","ADM", 2],
+            ["EAL","ADM", "SIL","ADM", 3],
+            ["EAL","KOT", "KTL","KOT", 3],
+            ["ISL","ADM", "TWL","ADM", 1],
+            ["ISL","ADM", "SIL","ADM", 3],
+            ["ISL","CEN", "TWL","CEN", 2],
+            ["ISL","NOP", "TKL","NOP", 2],
+            ["ISL","QUB", "TKL","QUB", 3],
+            ["KTL","YAT", "TKL","YAT", 1],
+            ["KTL","TIK", "TKL","TIK", 1],
+            ["KTL","PRE", "TWL","PRE", 1],
+            ["KTL","MOK", "TWL","MOK", 1],
+            ["KTL","YMT", "TWL","YMT", 2]
+        ];
+
+        // Build Graph
+        const GRAPH = {};
+        function addEdge(u, v, cost, type, line, dir) {
+            if (!GRAPH[u]) GRAPH[u] = [];
+            GRAPH[u].push({ to: v, cost, type, line, dir });
+        }
+
+        Object.entries(LINES).forEach(([lineCode, info]) => {
+            const stas = info.stations;
+            for (let i = 0; i < stas.length - 1; i++) {
+                const u = `${lineCode}:${stas[i]}`;
+                const v = `${lineCode}:${stas[i+1]}`;
+                if (info.branchSplit === "SHS" && stas[i] === "LOW" && stas[i+1] === "LMC") continue;
+                if (info.branchSplit === "TKO" && stas[i] === "POA" && stas[i+1] === "LHP") continue;
+
+                const t = info.times[i] || 2;
+                addEdge(u, v, t, "RIDE", lineCode, "UP");
+                addEdge(v, u, t, "RIDE", lineCode, "DOWN");
+            }
+            if (info.branchSplit === "SHS") {
+                addEdge("EAL:SHS", "EAL:LMC", 5, "RIDE", "EAL", "UP");
+                addEdge("EAL:LMC", "EAL:SHS", 5, "RIDE", "EAL", "DOWN");
+            }
+            if (info.branchSplit === "TKO") {
+                addEdge("TKL:TKO", "TKL:LHP", 4, "RIDE", "TKL", "UP");
+                addEdge("TKL:LHP", "TKL:TKO", 4, "RIDE", "TKL", "DOWN");
+            }
         });
 
-        // 預設常用站到站路線清單 (包含初始預設路線)
-        const DEFAULT_PRESETS = [
-            { sLine: "TML", sCode: "CIO", eLine: "TML", eCode: "NAC" }, // 第一城 -> 南昌
-            { sLine: "TML", sCode: "NAC", eLine: "TML", eCode: "CIO" }, // 南昌 -> 第一城
-            { sLine: "TML", sCode: "CIO", eLine: "TCL", eCode: "TUC" }, // 第一城 -> 東涌
-            { sLine: "TML", sCode: "CIO", eLine: "ISL", eCode: "ADM" }  // 第一城 -> 金鐘
-        ];
-
-        // 從 localStorage 讀取使用者的預設路線，若無則使用內建預設
-        let savedPresets = [];
-        try {
-            const stored = localStorage.getItem("mtr_custom_presets");
-            savedPresets = stored ? JSON.parse(stored) : [...DEFAULT_PRESETS];
-        } catch (e) {
-            savedPresets = [...DEFAULT_PRESETS];
-        }
-
-        function savePresetsToStorage() {
-            try {
-                localStorage.setItem("mtr_custom_presets", JSON.stringify(savedPresets));
-            } catch (e) {}
-        }
-
-        const TRANSFER_LINKS = [
-            { a: "TML:NAC", b: "TCL:NAC", mins: 3 },
-            { a: "TML:TAW", b: "EAL:TAW", mins: 2 },
-            { a: "TML:HUH", b: "EAL:HUH", mins: 3 },
-            { a: "TML:DIH", b: "KTL:DIH", mins: 3 },
-            { a: "TML:HOM", b: "KTL:HOM", mins: 3 },
-            { a: "TML:MEF", b: "TWL:MEF", mins: 4 },
-            { a: "TML:ETS", b: "TWL:TST", mins: 6 },
-            { a: "TML:AUS", b: "TCL:KOW", mins: 6 },
-            { a: "TCL:LAK", b: "TWL:LAK", mins: 2 },
-            { a: "TCL:HOK", b: "TWL:CEN", mins: 5 },
-            { a: "TCL:HOK", b: "ISL:CEN", mins: 5 },
-            { a: "TCL:TSY", b: "AEL:TSY", mins: 3 },
-            { a: "TCL:SUN", b: "DRL:SUN", mins: 2 },
-            { a: "EAL:ADM", b: "TWL:ADM", mins: 3 },
-            { a: "EAL:ADM", b: "ISL:ADM", mins: 3 },
-            { a: "EAL:ADM", b: "SIL:ADM", mins: 4 },
-            { a: "EAL:KOT", b: "KTL:KOT", mins: 3 },
-            { a: "TWL:CEN", b: "ISL:CEN", mins: 2 },
-            { a: "TWL:ADM", b: "ISL:ADM", mins: 2 },
-            { a: "TWL:ADM", b: "SIL:ADM", mins: 3 },
-            { a: "TWL:YMT", b: "KTL:YMT", mins: 2 },
-            { a: "TWL:MOK", b: "KTL:MOK", mins: 2 },
-            { a: "TWL:PRE", b: "KTL:PRE", mins: 2 },
-            { a: "ISL:ADM", b: "SIL:ADM", mins: 3 },
-            { a: "ISL:NOP", b: "TKL:NOP", mins: 2 },
-            { a: "ISL:QUB", b: "TKL:QUB", mins: 3 },
-            { a: "KTL:YAT", b: "TKL:YAT", mins: 2 },
-            { a: "KTL:TIK", b: "TKL:TIK", mins: 2 }
-        ];
-
-        function buildGraph() {
-            const adj = {};
-            const addEdge = (u, v, cost, type, line) => {
-                if (!adj[u]) adj[u] = [];
-                adj[u].push({ to: v, cost, type, line });
-            };
-
-            Object.keys(MTR_LINES).forEach(line => {
-                const stas = MTR_LINES[line].stations;
-                for (let i = 0; i < stas.length - 1; i++) {
-                    if (line === "EAL" && stas[i].code === "LOW") continue;
-                    if (line === "TKL" && stas[i].code === "POA") continue;
-                    const u = `${line}:${stas[i].code}`;
-                    const v = `${line}:${stas[i+1].code}`;
-                    addEdge(u, v, stas[i].mins, "ride", line);
-                    addEdge(v, u, stas[i].mins, "ride", line);
-                }
-                if (line === "EAL") {
-                    addEdge("EAL:SHS", "EAL:LMC", 7, "ride", "EAL");
-                    addEdge("EAL:LMC", "EAL:SHS", 7, "ride", "EAL");
-                }
-                if (line === "TKL") {
-                    addEdge("TKL:TKO", "TKL:LHP", 4, "ride", "TKL");
-                    addEdge("TKL:LHP", "TKL:TKO", 4, "ride", "TKL");
-                }
-            });
-
-            TRANSFER_LINKS.forEach(link => {
-                addEdge(link.a, link.b, link.mins + 12, "transfer", null);
-                addEdge(link.b, link.a, link.mins + 12, "transfer", null);
-            });
-            return adj;
-        }
-
-        const GRAPH = buildGraph();
+        INTERCHANGES.forEach(([l1, s1, l2, s2, walkMins]) => {
+            const u = `${l1}:${s1}`;
+            const v = `${l2}:${s2}`;
+            const penalty = walkMins + 6;
+            addEdge(u, v, penalty, "TRANSFER", l2, walkMins);
+            addEdge(v, u, penalty, "TRANSFER", l1, walkMins);
+        });
 
         function findShortestPath(startNode, endNode) {
+            if (startNode === endNode) return [];
+            const [sLine, sSta] = startNode.split(":");
+            const [eLine, eSta] = endNode.split(":");
+
+            if (sLine === eLine) {
+                const lineInfo = LINES[sLine];
+                const sIdx = lineInfo.stations.indexOf(sSta);
+                const eIdx = lineInfo.stations.indexOf(eSta);
+                const isBranchConflict =
+                    (lineInfo.branch1 && lineInfo.branch2) &&
+                    ((lineInfo.branch1.includes(sSta) && lineInfo.branch2.includes(eSta)) ||
+                     (lineInfo.branch2.includes(sSta) && lineInfo.branch1.includes(eSta)));
+
+                if (!isBranchConflict && sIdx !== -1 && eIdx !== -1) {
+                    const dir = sIdx < eIdx ? "UP" : "DOWN";
+                    let mins = 0;
+                    const minI = Math.min(sIdx, eIdx);
+                    const maxI = Math.max(sIdx, eIdx);
+                    for (let i = minI; i < maxI; i++) mins += (lineInfo.times[i] || 2);
+                    return [{
+                        type: "RIDE", line: sLine, dir: dir,
+                        fromSta: sSta, toSta: eSta,
+                        stops: maxI - minI, mins: mins
+                    }];
+                }
+            }
+
             const dist = {};
             const prev = {};
-            const visited = new Set();
-            Object.keys(GRAPH).forEach(node => dist[node] = Infinity);
+            const unvisited = new Set(Object.keys(GRAPH));
+
+            unvisited.forEach(node => dist[node] = Infinity);
             dist[startNode] = 0;
 
-            while (true) {
+            while (unvisited.size > 0) {
                 let u = null;
                 let minD = Infinity;
-                for (const node in dist) {
-                    if (!visited.has(node) && dist[node] < minD) {
-                        minD = dist[node];
-                        u = node;
-                    }
-                }
-                if (u === null || u === endNode) break;
-                visited.add(u);
+                unvisited.forEach(node => {
+                    if (dist[node] < minD) { minD = dist[node]; u = node; }
+                });
+                if (!u || u === endNode) break;
+                unvisited.delete(u);
 
-                for (const edge of (GRAPH[u] || [])) {
-                    if (!visited.has(edge.to)) {
-                        const alt = dist[u] + edge.cost;
-                        if (alt < dist[edge.to]) {
-                            dist[edge.to] = alt;
-                            prev[edge.to] = { node: u, edge };
-                        }
+                (GRAPH[u] || []).forEach(edge => {
+                    if (!unvisited.has(edge.to)) return;
+                    const alt = dist[u] + edge.cost;
+                    if (alt < dist[edge.to]) {
+                        dist[edge.to] = alt;
+                        prev[edge.to] = { node: u, edge };
                     }
-                }
+                });
             }
 
-            if (dist[endNode] === Infinity) return null;
-
-            const path = [];
+            const rawEdges = [];
             let curr = endNode;
             while (prev[curr]) {
-                path.unshift({ from: prev[curr].node, to: curr, edge: prev[curr].edge });
+                rawEdges.unshift({ from: prev[curr].node, to: curr, ...prev[curr].edge });
                 curr = prev[curr].node;
             }
-            return path;
-        }
 
-        function buildDirectSameLineLegs(lineCode, sCode, eCode) {
-            const stas = MTR_LINES[lineCode].stations;
-            const sIdx = stas.findIndex(s => s.code === sCode);
-            const eIdx = stas.findIndex(s => s.code === eCode);
-
-            if (lineCode === "EAL" && ((sCode === "LOW" && eCode === "LMC") || (sCode === "LMC" && eCode === "LOW"))) {
-                return [
-                    { line: "EAL", startCode: sCode, endCode: "SHS", dir: "DOWN", stops: 1, mins: sCode === "LOW" ? 5 : 7, transferAfter: { stationCode: "SHS", nextLine: "EAL", walkMins: 2, isBranch: true } },
-                    { line: "EAL", startCode: "SHS", endCode: eCode, dir: "UP", stops: 1, mins: eCode === "LOW" ? 5 : 7, transferAfter: null }
-                ];
-            }
-            if (lineCode === "TKL" && ((sCode === "POA" && eCode === "LHP") || (sCode === "LHP" && eCode === "POA"))) {
-                return [
-                    { line: "TKL", startCode: sCode, endCode: "TKO", dir: "DOWN", stops: 2, mins: 5, transferAfter: { stationCode: "TKO", nextLine: "TKL", walkMins: 2, isBranch: true } },
-                    { line: "TKL", startCode: "TKO", endCode: eCode, dir: "UP", stops: 1, mins: 4, transferAfter: null }
-                ];
-            }
-
-            let dir = sIdx < eIdx ? "UP" : "DOWN";
-            let mins = 0;
-            let stops = Math.abs(eIdx - sIdx);
-
-            if (lineCode === "EAL" && (sCode === "LMC" || eCode === "LMC")) {
-                const shsIdx = stas.findIndex(s => s.code === "SHS");
-                if (eCode === "LMC") {
-                    for (let i = sIdx; i < shsIdx; i++) mins += stas[i].mins;
-                    mins += 7;
-                    stops = (shsIdx - sIdx) + 1;
-                    dir = "UP";
+            const segments = [];
+            rawEdges.forEach(e => {
+                if (e.type === "TRANSFER") {
+                    segments.push({
+                        type: "TRANSFER",
+                        fromSta: e.from.split(":")[1],
+                        toSta: e.to.split(":")[1],
+                        toLine: e.line,
+                        walkMins: e.dir
+                    });
                 } else {
-                    mins += 7;
-                    for (let i = eIdx; i < shsIdx; i++) mins += stas[i].mins;
-                    stops = (shsIdx - eIdx) + 1;
-                    dir = "DOWN";
-                }
-            } else if (lineCode === "TKL" && (sCode === "LHP" || eCode === "LHP")) {
-                const tkoIdx = stas.findIndex(s => s.code === "TKO");
-                if (eCode === "LHP") {
-                    for (let i = sIdx; i < tkoIdx; i++) mins += stas[i].mins;
-                    mins += 4;
-                    stops = (tkoIdx - sIdx) + 1;
-                    dir = "UP";
-                } else {
-                    mins += 4;
-                    for (let i = eIdx; i < tkoIdx; i++) mins += stas[i].mins;
-                    stops = (tkoIdx - eIdx) + 1;
-                    dir = "DOWN";
-                }
-            } else {
-                const minI = Math.min(sIdx, eIdx);
-                const maxI = Math.max(sIdx, eIdx);
-                for (let i = minI; i < maxI; i++) mins += stas[i].mins;
-            }
-
-            return [{ line: lineCode, startCode: sCode, endCode: eCode, dir, stops, mins, transferAfter: null }];
-        }
-
-        function parseJourneyLegs(path, sLine, sCode, eLine, eCode) {
-            if (sLine === eLine) return buildDirectSameLineLegs(sLine, sCode, eCode);
-
-            const legs = [];
-            let currentLeg = null;
-
-            path.forEach(step => {
-                const [fromLine, fromSta] = step.from.split(":");
-                const [toLine, toSta] = step.to.split(":");
-
-                if (step.edge.type === "ride") {
-                    if (!currentLeg) {
-                        currentLeg = { line: fromLine, startCode: fromSta, endCode: toSta, stops: 1, mins: step.edge.cost, transferAfter: null };
+                    const last = segments[segments.length - 1];
+                    if (last && last.type === "RIDE" && last.line === e.line && last.dir === e.dir) {
+                        last.toSta = e.to.split(":")[1];
+                        last.stops += 1;
+                        last.mins += e.cost;
                     } else {
-                        currentLeg.endCode = toSta;
-                        currentLeg.stops += 1;
-                        currentLeg.mins += step.edge.cost;
-                    }
-                } else if (step.edge.type === "transfer") {
-                    if (currentLeg) {
-                        currentLeg.transferAfter = { stationCode: fromSta, nextLine: toLine, walkMins: step.edge.cost - 12, isBranch: false };
-                        legs.push(currentLeg);
-                        currentLeg = null;
+                        segments.push({
+                            type: "RIDE",
+                            line: e.line,
+                            dir: e.dir,
+                            fromSta: e.from.split(":")[1],
+                            toSta: e.to.split(":")[1],
+                            stops: 1,
+                            mins: e.cost
+                        });
                     }
                 }
             });
-            if (currentLeg) legs.push(currentLeg);
+            return segments;
+        }
 
-            legs.forEach(leg => {
-                const stas = MTR_LINES[leg.line].stations;
-                const sIdx = stas.findIndex(s => s.code === leg.startCode);
-                const eIdx = stas.findIndex(s => s.code === leg.endCode);
-                leg.dir = sIdx < eIdx ? "UP" : "DOWN";
+        // Preset Routes Storage
+        const DEFAULT_PRESETS = [
+            { sLine: "TML", sSta: "CIO", eLine: "TML", eSta: "NAC" },
+            { sLine: "TML", sSta: "NAC", eLine: "TML", eSta: "CIO" },
+            { sLine: "TML", sSta: "CIO", eLine: "TCL", eSta: "TUC" },
+            { sLine: "TML", sSta: "CIO", eLine: "EAL", eSta: "ADM" }
+        ];
+
+        function getPresets() {
+            try {
+                const saved = localStorage.getItem("mtr_custom_presets_v2");
+                if (saved) return JSON.parse(saved);
+            } catch (e) {}
+            return DEFAULT_PRESETS;
+        }
+
+        function savePresets(list) {
+            try { localStorage.setItem("mtr_custom_presets_v2", JSON.stringify(list)); } catch (e) {}
+        }
+
+        function renderPresets() {
+            const list = getPresets();
+            const container = document.getElementById("presetList");
+            const curSLine = startLineSel.value;
+            const curSSta = startStaSel.value;
+            const curELine = endLineSel.value;
+            const curESta = endStaSel.value;
+
+            container.innerHTML = "";
+            list.forEach((p, idx) => {
+                const isActive = (p.sLine === curSLine && p.sSta === curSSta && p.eLine === curELine && p.eSta === curESta);
+                const chip = document.createElement("div");
+                chip.className = `preset-chip ${isActive ? 'active' : ''}`;
+
+                const textSpan = document.createElement("span");
+                textSpan.className = "preset-text";
+                textSpan.textContent = `${stName(p.sSta)} ➔ ${stName(p.eSta)}`;
+                textSpan.onclick = () => {
+                    startLineSel.value = p.sLine;
+                    populateStations(startLineSel, startStaSel, p.sSta);
+                    endLineSel.value = p.eLine;
+                    populateStations(endLineSel, endStaSel, p.eSta);
+                    renderPresets();
+                    updateDashboard();
+                };
+
+                const delSpan = document.createElement("span");
+                delSpan.className = "preset-del";
+                delSpan.textContent = "×";
+                delSpan.onclick = (e) => {
+                    e.stopPropagation();
+                    const updated = getPresets().filter((_, i) => i !== idx);
+                    savePresets(updated);
+                    renderPresets();
+                };
+
+                chip.appendChild(textSpan);
+                chip.appendChild(delSpan);
+                container.appendChild(chip);
             });
-
-            return legs;
         }
 
         const startLineSel = document.getElementById("startLine");
         const startStaSel = document.getElementById("startSta");
         const endLineSel = document.getElementById("endLine");
         const endStaSel = document.getElementById("endSta");
-        const swapBtn = document.getElementById("swapBtn");
-        const langBtn = document.getElementById("langBtn");
-        const savePresetBtn = document.getElementById("savePresetBtn");
-        const presetsList = document.getElementById("presetsList");
 
-        function updateStaticTexts() {
-            const t = I18N[currentLang];
-            document.getElementById("uiTitle").innerText = t.title;
-            document.getElementById("uiPresetsTitle").innerText = t.presetsTitle;
-            savePresetBtn.innerText = t.savePreset;
-            document.getElementById("uiStartLabel").innerText = t.startLabel;
-            document.getElementById("uiEndLabel").innerText = t.endLabel;
-            document.getElementById("uiSwapBtn").innerText = t.swapBtn;
-            document.getElementById("uiFooter").innerText = t.footer;
-            langBtn.innerText = currentLang === "TC" ? "English" : "繁體中文";
-        }
-
-        function renderPresets() {
-            const curSLine = startLineSel.value;
-            const curSCode = startStaSel.value;
-            const curELine = endLineSel.value;
-            const curECode = endStaSel.value;
-
-            presetsList.innerHTML = savedPresets.map((p, idx) => {
-                const sName = GLOBAL_STATIONS[p.sCode] ? GLOBAL_STATIONS[p.sCode][currentLang] : p.sCode;
-                const eName = GLOBAL_STATIONS[p.eCode] ? GLOBAL_STATIONS[p.eCode][currentLang] : p.eCode;
-                const isActive = (p.sLine === curSLine && p.sCode === curSCode && p.eLine === curELine && p.eCode === curECode);
-                return `
-                    <div class="preset-chip ${isActive ? 'active' : ''}" onclick="applyPreset(${idx})">
-                        <span>${sName} ➔ ${eName}</span>
-                        <span class="preset-del" onclick="deletePreset(event, ${idx})" title="刪除">×</span>
-                    </div>
-                `;
-            }).join("");
-        }
-
-        window.applyPreset = function(idx) {
-            const p = savedPresets[idx];
-            if (!p) return;
-            startLineSel.value = p.sLine;
-            populateStations(startLineSel, startStaSel, p.sCode);
-            endLineSel.value = p.eLine;
-            populateStations(endLineSel, endStaSel, p.eCode);
-            updateJourney();
-        };
-
-        window.deletePreset = function(e, idx) {
-            e.stopPropagation();
-            savedPresets.splice(idx, 1);
-            savePresetsToStorage();
-            renderPresets();
-        };
-
-        savePresetBtn.addEventListener("click", () => {
-            const sLine = startLineSel.value;
-            const sCode = startStaSel.value;
-            const eLine = endLineSel.value;
-            const eCode = endStaSel.value;
-
-            if (sLine === eLine && sCode === eCode) return;
-
-            const exists = savedPresets.some(p => p.sLine === sLine && p.sCode === sCode && p.eLine === eLine && p.eCode === eCode);
-            if (exists) {
-                alert(I18N[currentLang].presetExistsAlert);
-                return;
-            }
-
-            savedPresets.push({ sLine, sCode, eLine, eCode });
-            savePresetsToStorage();
-            renderPresets();
-        });
-
-        function populateLineSelectors(preserveSelection = false) {
-            const prevStart = preserveSelection ? startLineSel.value : "TML";
-            const prevEnd = preserveSelection ? endLineSel.value : "TML";
-
+        function populateLines() {
+            const prevSLine = startLineSel.value || "TML";
+            const prevELine = endLineSel.value || "TML";
             startLineSel.innerHTML = "";
             endLineSel.innerHTML = "";
 
-            Object.keys(MTR_LINES).forEach(code => {
-                startLineSel.add(new Option(MTR_LINES[code].name[currentLang], code));
-                endLineSel.add(new Option(MTR_LINES[code].name[currentLang], code));
+            Object.entries(LINES).forEach(([code, info]) => {
+                const label = `${info.name[currentLang]} (${info.colorName[currentLang]})`;
+                startLineSel.add(new Option(label, code));
+                endLineSel.add(new Option(label, code));
             });
 
-            startLineSel.value = prevStart;
-            endLineSel.value = prevEnd;
+            startLineSel.value = prevSLine;
+            endLineSel.value = prevELine;
         }
 
-        function populateStations(lineSelect, staSelect, defaultCode = null) {
-            const prevVal = defaultCode || staSelect.value;
+        function populateStations(lineSelect, staSelect, defaultSta) {
             const lineCode = lineSelect.value;
+            const prevSta = defaultSta || staSelect.value;
             staSelect.innerHTML = "";
-            MTR_LINES[lineCode].stations.forEach(s => {
-                staSelect.add(new Option(s.name[currentLang], s.code));
+            LINES[lineCode].stations.forEach(staCode => {
+                staSelect.add(new Option(stName(staCode), staCode));
             });
-            if (prevVal && Array.from(staSelect.options).some(o => o.value === prevVal)) {
-                staSelect.value = prevVal;
+            if (prevSta && LINES[lineCode].stations.includes(prevSta)) {
+                staSelect.value = prevSta;
             }
         }
 
-        populateLineSelectors(false);
-        populateStations(startLineSel, startStaSel, "CIO");
-        populateStations(endLineSel, endStaSel, "NAC");
-        updateStaticTexts();
-        renderPresets();
-
-        langBtn.addEventListener("click", () => {
-            currentLang = currentLang === "TC" ? "EN" : "TC";
-            updateStaticTexts();
-            populateLineSelectors(true);
-            populateStations(startLineSel, startStaSel);
-            populateStations(endLineSel, endStaSel);
-            renderPresets();
-            updateJourney();
-        });
-
-        startLineSel.addEventListener("change", () => {
-            populateStations(startLineSel, startStaSel);
-            updateJourney();
-        });
-        startStaSel.addEventListener("change", updateJourney);
-
-        endLineSel.addEventListener("change", () => {
-            populateStations(endLineSel, endStaSel);
-            updateJourney();
-        });
-        endStaSel.addEventListener("change", updateJourney);
-
-        swapBtn.addEventListener("click", () => {
-            const tempLine = startLineSel.value;
-            const tempSta = startStaSel.value;
-            startLineSel.value = endLineSel.value;
-            populateStations(startLineSel, startStaSel, endStaSel.value);
-            endLineSel.value = tempLine;
-            populateStations(endLineSel, endStaSel, tempSta);
-            updateJourney();
-        });
-
-        let currentRequestToken = 0;
-
-        async function updateJourney() {
-            renderPresets();
-            const token = ++currentRequestToken;
+        function updateStaticTexts() {
             const t = I18N[currentLang];
-            const sLine = startLineSel.value;
-            const sCode = startStaSel.value;
-            const eLine = endLineSel.value;
-            const eCode = endStaSel.value;
+            document.documentElement.lang = currentLang === "EN" ? "en" : "zh-Hant-HK";
+            document.getElementById("uiTitle").textContent = t.title;
+            document.getElementById("langBtn").textContent = t.langBtn;
+            document.getElementById("uiPresetTitle").textContent = t.presetTitle;
+            document.getElementById("savePresetBtn").textContent = t.savePreset;
+            document.getElementById("uiOriginLabel").textContent = t.originLabel;
+            document.getElementById("uiDestLabel").textContent = t.destLabel;
+            document.getElementById("uiSwapText").textContent = t.swapText;
+            document.getElementById("uiFooterNote").textContent = t.footerNote;
+        }
 
-            const container = document.getElementById("journeyContainer");
-            const summary = document.getElementById("tripSummary");
+        function getTerminalLabel(lineCode, dir) {
+            const info = LINES[lineCode];
+            if (dir === "UP") {
+                if (lineCode === "EAL") return `${stName("LOW")} / ${stName("LMC")}`;
+                if (lineCode === "TKL") return `${stName("POA")} / ${stName("LHP")}`;
+                return stName(info.stations[info.stations.length - 1]);
+            } else {
+                return stName(info.stations[0]);
+            }
+        }
 
-            if (sLine === eLine && sCode === eCode) {
-                summary.innerHTML = `<span style="color:#ff3b30;">${t.sameStation}</span>`;
+        async function fetchSegmentTrains(seg, earliestCatchTime) {
+            const t = I18N[currentLang];
+            try {
+                const res = await fetch(`${API_URL}?line=${seg.line}&sta=${seg.fromSta}&lang=${currentLang}`);
+                const data = await res.json();
+                if (data.status !== 1) {
+                    return {
+                        html: `<div style="color:#ff9500;font-size:12px;">${t.sysUnavail}</div>`,
+                        arrivalAtSegEnd: null
+                    };
+                }
+
+                const staData = data.data && data.data[`${seg.line}-${seg.fromSta}`];
+                if (!staData) {
+                    return {
+                        html: `<div style="color:#ff9500;font-size:12px;">${t.sysUnavail}</div>`,
+                        arrivalAtSegEnd: null
+                    };
+                }
+
+                const trains = staData[seg.dir] || [];
+                if (!trains.length) {
+                    return {
+                        html: `<div style="color:#888;font-size:12px;">${t.noTrains}</div>`,
+                        arrivalAtSegEnd: null
+                    };
+                }
+
+                let recommendedMarked = false;
+                const lineStas = LINES[seg.line].stations;
+                const destIdx = lineStas.indexOf(seg.toSta);
+
+                const rowsHtml = trains.map(tr => {
+                    const destName = stName(tr.dest);
+                    const isSoon = tr.ttnt === "0";
+                    const waitText = isSoon ? t.arriving : `${tr.ttnt} ${t.mins}`;
+                    const depTimeStr = tr.time ? tr.time.split(" ")[1] : "";
+
+                    let etaStr = "";
+                    let catchBadge = "";
+                    let depDate = null;
+
+                    if (tr.time && tr.time.includes(" ")) {
+                        depDate = new Date(tr.time.replace(" ", "T"));
+                        if (!isNaN(depDate)) {
+                            const arrDate = new Date(depDate.getTime() + seg.mins * 60000);
+                            const hh = String(arrDate.getHours()).padStart(2, '0');
+                            const mm = String(arrDate.getMinutes()).padStart(2, '0');
+                            etaStr = `${t.arr} ${stName(seg.toSta)} ~${hh}:${mm}`;
+
+                            if (earliestCatchTime && !recommendedMarked && depDate >= earliestCatchTime) {
+                                catchBadge = `<span class="badge-catch">${t.catchThis}</span>`;
+                                recommendedMarked = true;
+                            }
+                        }
+                    }
+
+                    let warnBadge = "";
+                    const trEndIdx = lineStas.indexOf(tr.dest);
+                    if (trEndIdx !== -1 && destIdx !== -1) {
+                        if ((seg.dir === "UP" && trEndIdx < destIdx) || (seg.dir === "DOWN" && trEndIdx > destIdx)) {
+                            warnBadge = `<span class="badge-warn">${t.shortTurn(destName)}</span>`;
+                        }
+                    }
+
+                    return {
+                        depDate,
+                        html: `
+                            <div class="train-row">
+                                <div class="train-left">
+                                    <div class="train-dest">${t.toDest} ${destName} ${catchBadge} ${warnBadge}</div>
+                                    <div class="train-sub">${currentLang === 'TC' ? tr.plat + ' ' + t.plat : t.plat + ' ' + tr.plat} ｜ ${t.dep} ${depTimeStr}</div>
+                                </div>
+                                <div class="train-right">
+                                    <div class="ttnt-val ${isSoon ? 'ttnt-soon' : ''}">${waitText}</div>
+                                    <div class="eta-val">${etaStr}</div>
+                                </div>
+                            </div>
+                        `
+                    };
+                });
+
+                const firstValid = rowsHtml.find(r => !earliestCatchTime || (r.depDate && r.depDate >= earliestCatchTime)) || rowsHtml[0];
+                const arrivalAtSegEnd = firstValid && firstValid.depDate ? new Date(firstValid.depDate.getTime() + seg.mins * 60000) : null;
+
+                return {
+                    html: rowsHtml.map(r => r.html).join(""),
+                    arrivalAtSegEnd
+                };
+            } catch (e) {
+                return { html: `<div style="color:#ff3b30;font-size:12px;">${t.connErr}</div>`, arrivalAtSegEnd: null };
+            }
+        }
+
+        let currentRequestId = 0;
+
+        async function updateDashboard() {
+            const reqId = ++currentRequestId;
+            const t = I18N[currentLang];
+            const startNode = `${startLineSel.value}:${startStaSel.value}`;
+            const endNode = `${endLineSel.value}:${endStaSel.value}`;
+            const container = document.getElementById("itineraryContainer");
+
+            renderPresets();
+
+            if (startNode === endNode) {
+                document.getElementById("summaryBar").innerHTML = `<span style="color:#ff3b30;width:100%;">${t.sameStation}</span>`;
                 container.innerHTML = "";
                 return;
             }
 
-            let legs = [];
-            if (sLine === eLine) {
-                legs = buildDirectSameLineLegs(sLine, sCode, eCode);
-            } else {
-                const path = findShortestPath(`${sLine}:${sCode}`, `${eLine}:${eCode}`);
-                if (!path) {
-                    summary.innerHTML = `<span style="color:#ff3b30;">${t.noRoute}</span>`;
-                    container.innerHTML = "";
-                    return;
-                }
-                legs = parseJourneyLegs(path, sLine, sCode, eLine, eCode);
-            }
-
+            const segments = findShortestPath(startNode, endNode);
             let totalStops = 0;
             let totalMins = 0;
-            let transfers = legs.length - 1;
+            let transferCount = 0;
 
-            legs.forEach(leg => {
-                totalStops += leg.stops;
-                totalMins += leg.mins;
-                if (leg.transferAfter) totalMins += leg.transferAfter.walkMins;
+            segments.forEach(s => {
+                if (s.type === "RIDE") {
+                    totalStops += s.stops;
+                    totalMins += s.mins;
+                } else {
+                    totalMins += s.walkMins;
+                    transferCount += 1;
+                }
             });
 
-            summary.innerHTML = `
-                <span>${t.stopsCount(totalStops)}</span>
-                <span>${transfers === 0 ? t.directTrip : t.transferCount(transfers)}</span>
-                <span>${t.totalMins(totalMins)}</span>
+            document.getElementById("summaryBar").innerHTML = `
+                <span>${t.totalPrefix}${totalStops} ${t.stopsUnit}</span>
+                <span>${transferCount === 0 ? t.directText : t.transferText(transferCount)}</span>
+                <span>${t.estTime(totalMins)}</span>
             `;
 
-            container.innerHTML = legs.map((leg, idx) => {
-                const lineInfo = MTR_LINES[leg.line];
-                const dirText = leg.dir === "UP" ? t.dirTo(lineInfo.upDest[currentLang]) : t.dirTo(lineInfo.downDest[currentLang]);
-                const sName = GLOBAL_STATIONS[leg.startCode][currentLang];
-                const eName = GLOBAL_STATIONS[leg.endCode][currentLang];
-                let html = `
-                    <div class="leg-card" style="border-left-color: ${lineInfo.color};">
-                        <div class="leg-header">
-                            <span class="leg-route">${sName} ➔ ${eName}</span>
-                            <span class="leg-badge" style="background: ${lineInfo.color};">${lineInfo.shortName[currentLang]} · ${dirText}</span>
+            container.innerHTML = segments.map((seg, idx) => {
+                if (seg.type === "TRANSFER") {
+                    const staDisplay = seg.fromSta === seg.toSta ? stName(seg.fromSta) : `${stName(seg.fromSta)} ➔ ${stName(seg.toSta)}`;
+                    return `
+                        <div class="transfer-divider">
+                            <div class="transfer-pill">${t.transferWalk(staDisplay, lnName(seg.toLine), seg.walkMins)}</div>
                         </div>
-                        <div id="legTrains_${idx}"><div style="color:#888; font-size:13px;">${t.loading}</div></div>
-                    </div>
-                `;
-                if (leg.transferAfter) {
-                    const tStaName = GLOBAL_STATIONS[leg.transferAfter.stationCode][currentLang];
-                    const nextLineName = MTR_LINES[leg.transferAfter.nextLine].shortName[currentLang];
-                    const bannerText = leg.transferAfter.isBranch 
-                        ? t.branchTransfer(tStaName)
-                        : t.lineTransfer(tStaName, nextLineName, leg.transferAfter.walkMins);
-                    html += `
-                        <div class="transfer-banner">
-                            <span style="font-size:18px;">🚶</span>
-                            <span>${bannerText}</span>
+                    `;
+                } else {
+                    const lineInfo = LINES[seg.line];
+                    const termName = getTerminalLabel(seg.line, seg.dir);
+                    const staFirstTime = getStationFirstTrain(seg.line, seg.dir, seg.fromSta);
+                    const staLastTime = getStationLastTrain(seg.line, seg.dir, seg.fromSta);
+                    const termShort = getTerminalLabel(seg.line, seg.dir);
+                    const firstDisplay = `${staFirstTime} (${t.towards}${termShort})`;
+                    const lastDisplay = (seg.line === "EAL" && seg.dir === "UP") || (seg.line === "TKL" && seg.dir === "UP")
+                        ? staLastTime
+                        : `${staLastTime} (${t.towards}${termShort})`;
+
+                    return `
+                        <div class="card">
+                            <div class="seg-header">
+                                <div class="seg-title">${stName(seg.fromSta)} ➔ ${stName(seg.toSta)}</div>
+                                <div class="line-pill" style="background:${lineInfo.color};">${lnName(seg.line)}・${t.towards}${termName}</div>
+                            </div>
+                            <div class="first-last-box">
+                                <div class="fl-item">
+                                    <div class="fl-label">${t.firstTrain(stName(seg.fromSta))}</div>
+                                    <div class="fl-val first">${firstDisplay}</div>
+                                </div>
+                                <div class="fl-item" style="text-align:right;">
+                                    <div class="fl-label">${t.lastTrain(stName(seg.fromSta))}</div>
+                                    <div class="fl-val last">${lastDisplay}</div>
+                                </div>
+                            </div>
+                            <div id="seg-body-${idx}"><div style="color:#888;font-size:12px;">${t.loading}</div></div>
                         </div>
                     `;
                 }
-                return html;
             }).join("");
 
-            let prevLegEarliestArrival = null;
-
-            for (let idx = 0; idx < legs.length; idx++) {
-                if (token !== currentRequestToken) return;
-
-                const leg = legs[idx];
-                const listEl = document.getElementById(`legTrains_${idx}`);
-                if (!listEl) continue;
-
-                try {
-                    const res = await fetch(`${API_URL}?line=${leg.line}&sta=${leg.startCode}&lang=${currentLang}`);
-                    const data = await res.json();
-
-                    if (token !== currentRequestToken) return;
-
-                    if (data.status !== 1) {
-                        listEl.innerHTML = `<div style="color:#ff9500; font-size:13px;">${data.message || t.noTrains}</div>`;
-                        continue;
+            let rollingArrivalTime = null;
+            for (let i = 0; i < segments.length; i++) {
+                if (reqId !== currentRequestId) return;
+                const seg = segments[i];
+                if (seg.type === "TRANSFER") {
+                    if (rollingArrivalTime) {
+                        rollingArrivalTime = new Date(rollingArrivalTime.getTime() + seg.walkMins * 60000);
                     }
-
-                    const trains = data.data[`${leg.line}-${leg.startCode}`][leg.dir] || [];
-                    if (trains.length === 0) {
-                        listEl.innerHTML = `<div style="color:#888; font-size:13px;">${t.noTrains}</div>`;
-                        continue;
-                    }
-
-                    let earliestThisLeg = null;
-                    let suggestedMarked = false;
-
-                    listEl.innerHTML = trains.map(tr => {
-                        const destName = GLOBAL_STATIONS[tr.dest] ? GLOBAL_STATIONS[tr.dest][currentLang] : tr.dest;
-                        const isSoon = tr.ttnt === "0";
-                        const waitText = isSoon ? t.arriving : t.minsWait(tr.ttnt);
-
-                        let tagsHtml = "";
-                        let etaText = "";
-                        let timeStr = tr.time && tr.time.includes(" ") ? tr.time.split(" ")[1] : tr.time;
-
-                        const lineStas = MTR_LINES[leg.line].stations;
-                        const destIdx = lineStas.findIndex(s => s.code === tr.dest);
-                        const legEndIdx = lineStas.findIndex(s => s.code === leg.endCode);
-                        if (destIdx !== -1 && legEndIdx !== -1) {
-                            if ((leg.dir === "UP" && destIdx < legEndIdx) || (leg.dir === "DOWN" && destIdx > legEndIdx)) {
-                                tagsHtml += `<span class="tag-warn">${t.shortTurnWarn(destName)}</span>`;
-                            }
-                        }
-
-                        if (tr.time && tr.time.includes(" ")) {
-                            const depDate = new Date(tr.time.replace(" ", "T"));
-                            if (!isNaN(depDate)) {
-                                if (prevLegEarliestArrival && !suggestedMarked && depDate >= prevLegEarliestArrival) {
-                                    tagsHtml += `<span class="tag-catch">${t.suggestedCatch}</span>`;
-                                    suggestedMarked = true;
-                                }
-
-                                const arrDate = new Date(depDate.getTime() + leg.mins * 60000);
-                                if (!earliestThisLeg) {
-                                    earliestThisLeg = arrDate;
-                                }
-                                const hh = String(arrDate.getHours()).padStart(2, '0');
-                                const mm = String(arrDate.getMinutes()).padStart(2, '0');
-                                const endStaName = GLOBAL_STATIONS[leg.endCode][currentLang];
-                                etaText = t.etaAt(`${hh}:${mm}`, endStaName);
-                            }
-                        }
-
-                        return `
-                            <div class="train-item">
-                                <div class="train-left">
-                                    <div class="train-dest">${t.toDest(destName)} ${tagsHtml}</div>
-                                    <div class="train-meta">${t.platTime(tr.plat, timeStr)}</div>
-                                </div>
-                                <div class="train-right">
-                                    <div class="wait-time ${isSoon ? 'wait-soon' : ''}">${waitText}</div>
-                                    <div class="eta-dest">${etaText}</div>
-                                </div>
-                            </div>
-                        `;
-                    }).join("");
-
-                    if (earliestThisLeg && leg.transferAfter) {
-                        prevLegEarliestArrival = new Date(earliestThisLeg.getTime() + leg.transferAfter.walkMins * 60000);
-                    }
-                } catch (err) {
-                    if (token === currentRequestToken) {
-                        listEl.innerHTML = `<div style="color:#ff3b30; font-size:13px;">${t.connErr}</div>`;
-                    }
+                } else {
+                    const result = await fetchSegmentTrains(seg, rollingArrivalTime);
+                    if (reqId !== currentRequestId) return;
+                    const bodyEl = document.getElementById(`seg-body-${i}`);
+                    if (bodyEl) bodyEl.innerHTML = result.html;
+                    rollingArrivalTime = result.arrivalAtSegEnd;
                 }
             }
 
-            if (token === currentRequestToken) {
+            if (reqId === currentRequestId) {
                 const now = new Date();
-                document.getElementById("lastUpdate").innerText = `${t.lastUpdate}${now.toTimeString().split(" ")[0]}`;
+                const hh = String(now.getHours()).padStart(2, '0');
+                const mm = String(now.getMinutes()).padStart(2, '0');
+                const ss = String(now.getSeconds()).padStart(2, '0');
+                document.getElementById("lastUpdate").textContent = `${t.lastUpdate}${hh}:${mm}:${ss}`;
             }
         }
 
-        updateJourney();
-        setInterval(updateJourney, 10000);
+        // Event Listeners
+        startLineSel.addEventListener("change", () => {
+            populateStations(startLineSel, startStaSel);
+            updateDashboard();
+        });
+        startStaSel.addEventListener("change", updateDashboard);
+
+        endLineSel.addEventListener("change", () => {
+            populateStations(endLineSel, endStaSel);
+            updateDashboard();
+        });
+        endStaSel.addEventListener("change", updateDashboard);
+
+        document.getElementById("swapBtn").addEventListener("click", () => {
+            const tmpL = startLineSel.value;
+            const tmpS = startStaSel.value;
+            startLineSel.value = endLineSel.value;
+            populateStations(startLineSel, startStaSel, endStaSel.value);
+            endLineSel.value = tmpL;
+            populateStations(endLineSel, endStaSel, tmpS);
+            updateDashboard();
+        });
+
+        document.getElementById("savePresetBtn").addEventListener("click", () => {
+            const t = I18N[currentLang];
+            const sLine = startLineSel.value;
+            const sSta = startStaSel.value;
+            const eLine = endLineSel.value;
+            const eSta = endStaSel.value;
+            if (sLine === eLine && sSta === eSta) return;
+
+            const list = getPresets();
+            const exists = list.some(p => p.sLine === sLine && p.sSta === sSta && p.eLine === eLine && p.eSta === eSta);
+            if (exists) {
+                alert(t.existMsg);
+                return;
+            }
+            list.push({ sLine, sSta, eLine, eSta });
+            savePresets(list);
+            renderPresets();
+            alert(t.savedMsg);
+        });
+
+        document.getElementById("langBtn").addEventListener("click", () => {
+            currentLang = currentLang === "TC" ? "EN" : "TC";
+            try { localStorage.setItem("mtr_preferred_lang", currentLang); } catch (e) {}
+            updateStaticTexts();
+            populateLines();
+            populateStations(startLineSel, startStaSel, startStaSel.value);
+            populateStations(endLineSel, endStaSel, endStaSel.value);
+            updateDashboard();
+        });
+
+        // Init (Default: City One -> Nam Cheong)
+        updateStaticTexts();
+        populateLines();
+        startLineSel.value = "TML";
+        populateStations(startLineSel, startStaSel, "CIO");
+        endLineSel.value = "TML";
+        populateStations(endLineSel, endStaSel, "NAC");
+
+        updateDashboard();
+        setInterval(updateDashboard, 10000);
     </script>
 </body>
 </html>
