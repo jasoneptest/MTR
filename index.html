@@ -31,11 +31,49 @@
         .lang-btn { background: rgba(255,255,255,0.18); color: white; border: 1px solid rgba(255,255,255,0.35); padding: 7px 12px; border-radius: 20px; font-size: calc(12px * var(--font-scale, 1)); font-weight: bold; cursor: pointer; white-space: nowrap; flex-shrink: 0; }
         .lang-btn:active { background: rgba(255,255,255,0.3); }
 
-        .header-actions { display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
-        .font-group { display: inline-flex; background: rgba(0,0,0,0.28); border: 1px solid rgba(255,255,255,0.3); border-radius: 20px; overflow: hidden; }
-        .font-btn { background: transparent; color: #d0e4f7; border: none; padding: 6px 9px; font-size: 12px; font-weight: bold; cursor: pointer; line-height: 1; }
-        .font-btn.active { background: var(--accent); color: #000; }
-        .font-btn:active { opacity: 0.8; }
+        .header-actions { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
+        .font-slider-box {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            background: rgba(0,0,0,0.28);
+            border: 1px solid rgba(255,255,255,0.3);
+            border-radius: 20px;
+            padding: 5px 10px;
+        }
+        .font-a-small { font-size: 11px; font-weight: 800; color: #d0e4f7; line-height: 1; user-select: none; }
+        .font-a-large { font-size: 16px; font-weight: 800; color: #ffffff; line-height: 1; user-select: none; }
+        .font-slider {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 68px;
+            height: 6px;
+            border-radius: 99px;
+            background: linear-gradient(to right, #ffffff 0%, #ffffff 33%, rgba(255,255,255,0.25) 33%, rgba(255,255,255,0.25) 100%);
+            outline: none;
+            cursor: pointer;
+            margin: 0;
+        }
+        .font-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            background: #ffffff;
+            border: 2px solid #005596;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.45);
+            cursor: pointer;
+        }
+        .font-slider::-moz-range-thumb {
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            background: #ffffff;
+            border: 2px solid #005596;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.45);
+            cursor: pointer;
+        }
 
 
         .card { background: var(--card-bg); border-radius: 14px; padding: 14px; margin-bottom: 12px; border: 1px solid #262830; width: 100%; }
@@ -145,12 +183,12 @@
             <p id="lastUpdate">正在連線港鐵伺服器...</p>
         </div>
         <div class="header-actions">
-            <div class="font-group" id="fontGroup" title="字體大小 / Font Size">
-                <button class="font-btn" data-scale="1" id="fontBtn1">標準</button>
-                <button class="font-btn" data-scale="1.2" id="fontBtn2">大</button>
-                <button class="font-btn" data-scale="1.4" id="fontBtn3">特大</button>
+            <div class="font-slider-box" title="字體大小 / Font Size">
+                <span class="font-a-small">A</span>
+                <input type="range" id="fontSlider" class="font-slider" min="0.9" max="1.45" step="0.05" value="1" aria-label="字體大小滑桿">
+                <span class="font-a-large">A</span>
             </div>
-            <button class="lang-btn" id="langBtn">EN / 繁中</button>
+            <button class="lang-btn" id="langBtn">Eng</button>
         </div>
     </div>
 
@@ -987,11 +1025,7 @@
             document.documentElement.lang = currentLang === "EN" ? "en" : "zh-Hant-HK";
             document.getElementById("uiTitle").textContent = t.title;
             document.getElementById("langBtn").textContent = t.langBtn;
-            if (t.fontLabels) {
-                document.getElementById("fontBtn1").textContent = t.fontLabels[0];
-                document.getElementById("fontBtn2").textContent = t.fontLabels[1];
-                document.getElementById("fontBtn3").textContent = t.fontLabels[2];
-            }
+
             document.getElementById("uiPresetTitle").textContent = t.presetTitle;
             document.getElementById("savePresetBtn").textContent = t.savePreset;
             document.getElementById("uiOriginLabel").textContent = t.originLabel;
@@ -1108,6 +1142,7 @@
         let currentRequestId = 0;
 
         async function updateDashboard() {
+            const savedScrollY = window.scrollY;
             const reqId = ++currentRequestId;
             const t = I18N[currentLang];
             const startNode = `${startLineSel.value}:${startStaSel.value}`;
@@ -1207,6 +1242,7 @@
                 const mm = String(now.getMinutes()).padStart(2, '0');
                 const ss = String(now.getSeconds()).padStart(2, '0');
                 document.getElementById("lastUpdate").textContent = `${t.lastUpdate}${hh}:${mm}:${ss}`;
+                window.scrollTo({ top: savedScrollY, behavior: 'instant' });
             }
         }
 
@@ -1264,30 +1300,34 @@
         });
 
         
-        // Font Scale Persistence & Controls
-        let currentFontScale = "1";
+        // Font Scale Slider Persistence & Smooth Control
+        const fontSlider = document.getElementById("fontSlider");
+        let savedFontScale = "1";
         try {
-            const savedScale = localStorage.getItem("mtr_font_scale");
-            if (savedScale && ["1", "1.2", "1.4"].includes(savedScale)) {
-                currentFontScale = savedScale;
+            const s = localStorage.getItem("mtr_font_scale");
+            if (s && !isNaN(parseFloat(s))) {
+                savedFontScale = s;
             }
         } catch (e) {}
 
-        function applyFontScale(scaleStr) {
-            currentFontScale = scaleStr;
+        function applyFontSlider(val) {
+            const num = Math.max(0.9, Math.min(1.45, parseFloat(val) || 1));
+            const scaleStr = num.toFixed(2).replace(/\.00$/, "").replace(/(\.\d)0$/, "$1");
             document.documentElement.style.setProperty("--font-scale", scaleStr);
-            document.querySelectorAll(".font-btn").forEach(btn => {
-                btn.classList.toggle("active", btn.dataset.scale === scaleStr);
-            });
+            if (fontSlider) {
+                fontSlider.value = scaleStr;
+                const pct = ((num - 0.9) / (1.45 - 0.9)) * 100;
+                fontSlider.style.background = `linear-gradient(to right, #ffffff 0%, #ffffff ${pct}%, rgba(255,255,255,0.25) ${pct}%, rgba(255,255,255,0.25) 100%)`;
+            }
             try { localStorage.setItem("mtr_font_scale", scaleStr); } catch (e) {}
         }
 
-        document.querySelectorAll(".font-btn").forEach(btn => {
-            btn.addEventListener("click", () => {
-                applyFontScale(btn.dataset.scale);
+        if (fontSlider) {
+            fontSlider.addEventListener("input", (e) => {
+                applyFontSlider(e.target.value);
             });
-        });
-        applyFontScale(currentFontScale);
+        }
+        applyFontSlider(savedFontScale);
 
         // Init (Default: City One -> Nam Cheong)
         updateStaticTexts();
