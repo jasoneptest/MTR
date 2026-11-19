@@ -179,7 +179,7 @@
 
     <div class="header">
         <div class="header-left">
-            <h1 id="uiTitle">🚇 港鐵即時跨線轉乘</h1>
+            <h1 id="uiTitle">🚇 港鐵跨線轉乘</h1>
             <p id="lastUpdate">正在連線港鐵伺服器...</p>
         </div>
         <div class="header-actions">
@@ -254,7 +254,7 @@
 
         const I18N = {
             TC: {
-                title: "🚇 港鐵即時跨線轉乘",
+                title: "🚇 港鐵跨線轉乘",
                 langBtn: "Eng",
                 fontLabels: ["標準", "大", "特大"],
                 connecting: "正在連線港鐵伺服器...",
@@ -277,6 +277,7 @@
                 plat: "號月台",
                 dep: "開出",
                 arr: "抵達",
+                departing: "正在離開 🚆",
                 arriving: "即將到達 🚆",
                 mins: "分鐘",
                 catchThis: "建議乘搭此班",
@@ -315,6 +316,7 @@
                 plat: "Platform",
                 dep: "Dep",
                 arr: "Arr",
+                departing: "Departing 🚆",
                 arriving: "Arriving 🚆",
                 mins: "mins",
                 catchThis: "Recommended",
@@ -1079,8 +1081,10 @@
 
                 const rowsHtml = trains.map(tr => {
                     const destName = stName(tr.dest);
-                    const isSoon = tr.ttnt === "0";
-                    const waitText = isSoon ? t.arriving : `${tr.ttnt} ${t.mins}`;
+                    const isDeparting = tr.ttnt === "0";
+                    const isArriving = tr.ttnt === "1";
+                    const isSoon = isDeparting || isArriving;
+                    const waitText = isDeparting ? t.departing : (isArriving ? t.arriving : `${tr.ttnt} ${t.mins}`);
                     const depTimeStr = tr.time ? tr.time.split(" ")[1] : "";
 
                     let etaStr = "";
