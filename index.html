@@ -428,8 +428,9 @@
   }
   .ttnt-soon { color: #f87171; }
   .eta-val {
-    font-size: calc(11.5px * var(--font-scale));
-    color: #9ca3af;
+    font-size: calc(12px * var(--font-scale));
+    color: #fbbf24;
+    font-weight: 600;
     margin-top: 2px;
   }
   .badge-catch {
@@ -593,8 +594,9 @@
   @media (max-width: 600px) {
     .top-header { padding: 10px 12px; }
     .main-wrapper { padding: 0 10px 20px; }
-    .select-pair { grid-template-columns: 1fr; gap: 8px; }
-    .summary-bar { flex-direction: column; gap: 4px; text-align: center; }
+    .select-pair { grid-template-columns: 1fr 1fr; gap: 8px; }
+    .select-pair select { padding: 9px 8px; font-size: calc(13px * var(--font-scale)); }
+    .summary-bar { flex-direction: row; justify-content: space-between; gap: 4px; padding: 9px 10px; font-size: calc(12px * var(--font-scale)); white-space: nowrap; }
   }
 </style>
 </head>
@@ -1156,6 +1158,7 @@ function renderPresets() {
         textSpan.className = "preset-text";
         textSpan.textContent = `${stName(p.sSta)} ➔ ${stName(p.eSta)}`;
         textSpan.onclick = () => {
+            clearLocStatus();
             startLineSel.value = p.sLine;
             populateStations(startLineSel, startStaSel, p.sSta);
             endLineSel.value = p.eLine;
@@ -1424,12 +1427,13 @@ async function updateDashboard(isAutoRefresh = false) {
     }
 }
 
-startLineSel.addEventListener("change", () => { populateStations(startLineSel, startStaSel); updateDashboard(); });
-startStaSel.addEventListener("change", updateDashboard);
+startLineSel.addEventListener("change", () => { clearLocStatus(); populateStations(startLineSel, startStaSel); updateDashboard(); });
+startStaSel.addEventListener("change", () => { clearLocStatus(); updateDashboard(); });
 endLineSel.addEventListener("change", () => { populateStations(endLineSel, endStaSel); updateDashboard(); });
 endStaSel.addEventListener("change", updateDashboard);
 
 document.getElementById("swapBtn").addEventListener("click", () => {
+    clearLocStatus();
     const tmpL = startLineSel.value;
     const tmpS = startStaSel.value;
     startLineSel.value = endLineSel.value;
@@ -1564,6 +1568,7 @@ const STATION_EXITS = {
     KWF: [{ code: "A", tc: "葵義路、葵芳廣場、葵涌廣場", en: "Kwai Chung Plaza" }, { code: "B", tc: "興芳路、新都會廣場、葵芳站公共運輸交匯處", en: "Metroplaza" }],
     TSW: [{ code: "A1", tc: "西樓角路、綠楊坊、荃灣政府合署", en: "Luk Yeung Galleria" }, { code: "A3", tc: "大河道、荃灣大會堂、如心廣場", en: "Nina Tower" }, { code: "E", tc: "西樓角路、愉景新城", en: "Discovery Park" }],
     HKU: [{ code: "A1", tc: "薄扶林道、香港大學（本部、港大莊月明文娛中心）", en: "The University of Hong Kong" }, { code: "C2", tc: "德輔道西、寶翠園、加多近街", en: "The Belcher's" }],
+    SYP: [{ code: "A1", tc: "德輔道西、西營盤街市、正街", en: "Des Voeux Rd West, Sai Ying Pun Market, Centre St" }, { code: "A2", tc: "皇后大道西、第二街、高街", en: "Queen's Rd West, Second St, High St" }, { code: "B1", tc: "皇后大道西、第一街、西營盤郵政局", en: "Queen's Rd West, First St, Sai Ying Pun Post Office" }, { code: "B2", tc: "德輔道西、水街、修打蘭街", en: "Des Voeux Rd West, Water St, Sutherland St" }, { code: "B3", tc: "般咸道、西營盤社區綜合大樓、高街", en: "Bonham Rd, Sai Ying Pun Community Complex, High St" }, { code: "C", tc: "德輔道西、東邊街、干諾道西", en: "Des Voeux Rd West, Eastern St, Connaught Rd West" }],
     SHW: [{ code: "A2", tc: "干諾道中、信德中心、港澳碼頭", en: "Shun Tak Centre, Hong Kong–Macau Ferry Pier" }, { code: "E1", tc: "干諾道西、西港城", en: "Western Market" }],
     WAC: [{ code: "A2", tc: "莊士敦道、利東街、灣仔郵政局", en: "Lee Tung Ave" }, { code: "C", tc: "史釗域道、杜老誌道、香港會議展覽中心", en: "Hong Kong Convention and Exhibition Centre" }],
     CAB: [{ code: "A", tc: "羅素街、時代廣場、利舞台廣場", en: "Times Square, Lee Theatre Plaza" }, { code: "C", tc: "軒尼詩道、崇光百貨（SOGO）、渣甸坊", en: "SOGO" }, { code: "D2", tc: "記利佐治街、百德新街、皇室堡", en: "Windsor House" }, { code: "E", tc: "糖街、維多利亞公園、希慎廣場", en: "Victoria Park, Hysan Place" }, { code: "F1", tc: "希慎廣場、利園一/二期、恩平道", en: "Hysan Place, Lee Gardens" }],
@@ -1627,6 +1632,11 @@ function findNearestStation(lat, lng) {
 }
 
 const locStatusEl = document.getElementById("locStatus");
+function clearLocStatus() {
+    locStatusEl.style.display = "none";
+    locStatusEl.innerHTML = "";
+}
+
 document.getElementById("locateBtn").addEventListener("click", () => {
     const t = I18N[currentLang];
     if (!navigator.geolocation) {
