@@ -1490,8 +1490,8 @@ if (fontSlider) fontSlider.addEventListener("input", (e) => applyFontSlider(e.ta
 applyFontSlider(savedFontScale);
 
 const STATION_COORDS = {
-    WKS:[22.4233,114.2305], MOS:[22.4253,114.2316], HEO:[22.4242,114.2248], TSH:[22.4245,114.2165],
-    SHM:[22.4227,114.2085], CIO:[22.4193,114.2035], STW:[22.4126,114.1997], CKT:[22.4063,114.1956],
+    WKS:[22.4233,114.2305], MOS:[22.4253,114.2316], HEO:[22.4242,114.2248], TSH:[22.4095,114.2231],
+    SHM:[22.3879,114.2084], CIO:[22.3828,114.2036], STW:[22.3771,114.1950], CKT:[22.3748,114.1862],
     TAW:[22.3727,114.1787], HIK:[22.3627,114.1780], DIH:[22.3404,114.2018], KAT:[22.3306,114.1994],
     SUW:[22.3282,114.1912], TKW:[22.3237,114.1886], HOM:[22.3095,114.1824], HUH:[22.3033,114.1818],
     ETS:[22.2957,114.1752], AUS:[22.3046,114.1665], NAC:[22.3266,114.1536], MEF:[22.3376,114.1378],
@@ -1644,6 +1644,7 @@ function calcDistanceMeters(lat1, lon1, lat2, lon2) {
 function findNearestStation(lat, lng) {
     let bestSta = null, bestDist = Infinity;
     Object.entries(STATION_COORDS).forEach(([staCode, [sLat, sLng]]) => {
+        if (staCode === "RAC") return; // 馬場站僅於賽馬日開放，不作日常最近站預設
         const d = calcDistanceMeters(lat, lng, sLat, sLng);
         if (d < bestDist) { bestDist = d; bestSta = staCode; }
     });
@@ -1679,11 +1680,14 @@ document.getElementById("locateBtn").addEventListener("click", () => {
             if (!found) { locStatusEl.style.color = "#ff9500"; locStatusEl.textContent = t.locUnavail; return; }
             startLineSel.value = found.lineCode;
             populateStations(startLineSel, startStaSel, found.staCode);
+            const accM = Math.round(pos.coords.accuracy || 0);
+            const accText = accM > 0 ? `（定位誤差約 ±${accM} 米）` : "";
             const navUrl = buildEntranceNavUrl(found.staCode, found.exitCode, uLat, uLng);
             const exitDesc = found.exitDesc ? `（${found.exitDesc}）` : "";
             locStatusEl.style.color = "#6ee787";
             locStatusEl.innerHTML = `
                 <div style="font-weight:600;">${t.locSuccess(stName(found.staCode), lnName(found.lineCode), found.exitCode, found.meters)}${exitDesc}</div>
+                <div style="color:#9ca3af;font-size:calc(11px * var(--font-scale, 1));margin-top:2px;">${uLat.toFixed(5)}, ${uLng.toFixed(5)}${accText}</div>
                 <a class="loc-nav-link" href="${navUrl}" target="_blank" rel="noopener noreferrer">🗺️ ${t.locNavBtn(stName(found.staCode), found.exitCode)} (Google Maps)</a>
             `;
             updateDashboard(false);
@@ -1692,7 +1696,7 @@ document.getElementById("locateBtn").addEventListener("click", () => {
             locStatusEl.style.display = "block"; locStatusEl.style.color = "#ff3b30";
             locStatusEl.textContent = (err && err.code === 1) ? t.locDenied : t.locUnavail;
         },
-        { enableHighAccuracy: true, timeout: 10000, maximumAge: 30000 }
+        { enableHighAccuracy: true, timeout: 12000, maximumAge: 0 }
     );
 });
 
